@@ -1,0 +1,36 @@
+# Application
+node_modules/
+dist/
+build/
+.next/
+out/
+
+# Environment — NEVER commit secrets or credentials
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+*.swp
+
+# Test coverage
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Sensitive business / compliance documents — keep off source control
+*.pdf
+*.docx
+*.doc
+*.xlsx
