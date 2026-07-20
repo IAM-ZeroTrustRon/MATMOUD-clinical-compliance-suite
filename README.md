@@ -13,9 +13,9 @@ This repository contains the **pilot-ready beta** — a single, focused core flo
 | Module | Status |
 |---|---|
 | Login & Org Setup (Auth0 + MFA) | ✅ In progress |
-| Credential Dashboard | 🔲 Planned |
-| Document Upload (S3 SSE-KMS) | 🔲 Planned |
-| Email Alerts Workflow | 🔲 Planned |
+| Credential Dashboard | ✅ In progress |
+| Document Upload (S3 SSE-KMS) | ✅ In progress |
+| Email Alerts Workflow | ✅ In progress |
 | Audit Trail | ✅ In progress |
 
 > **Out of scope for beta:** SMS alerts, wound care workflows, EHR integrations (Epic/Cerner/HL7/FHIR), advanced analytics, billing automation, research portals.
@@ -28,15 +28,30 @@ This repository contains the **pilot-ready beta** — a single, focused core flo
 clinical-compliance-suite/
 ├── apps/
 │   └── api/                          # Node.js Express API
+│       ├── package.json
+│       ├── tsconfig.json
 │       └── src/
+│           ├── server.ts             # Express bootstrap + middleware wiring
+│           ├── config/
+│           │   ├── db.ts             # PostgreSQL pool + RLS client factory
+│           │   └── s3.ts             # S3 client with SSE-KMS support
 │           ├── middleware/
 │           │   ├── index.ts          # Barrel — middleware chain order
 │           │   ├── auth.middleware.ts     # Auth0 JWT validation + MFA enforcement
 │           │   ├── tenant.middleware.ts   # PostgreSQL RLS context (multi-tenancy)
 │           │   ├── audit.middleware.ts    # HIPAA-compliant immutable audit log
 │           │   └── rbac.ts               # Role/tier definitions + access guards
+│           ├── routes/
+│           │   ├── credentials.routes.ts  # Dashboard + document upload
+│           │   └── alerts.routes.ts       # Expiration → SendGrid workflow
+│           ├── services/
+│           │   ├── expiration.service.ts  # Expiring credential query
+│           │   └── email.service.ts       # SendGrid (no PHI in body)
+│           ├── utils/
+│           │   └── validator.ts           # MIME type validation
 │           └── types/
 │               └── express.d.ts      # Express Request type extensions
+├── .env.example
 └── .github/
     ├── agents/
     │   └── clinical-compliance-beta.agent.md   # VS Code Copilot agent
