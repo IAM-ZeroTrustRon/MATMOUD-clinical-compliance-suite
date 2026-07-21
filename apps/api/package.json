@@ -8,11 +8,13 @@
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "test": "jest --forceExit --detectOpenHandles",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "migrate": "npx ts-node src/config/run-migrations.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.500.0",
     "@sendgrid/mail": "^8.1.0",
+    "dotenv": "^17.4.2",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.1.0",
@@ -34,4 +36,3 @@
     "typescript": "^5.3.3"
   }
 }
-

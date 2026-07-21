@@ -1,4 +1,5 @@
 import express from 'express';
+import 'dotenv/config';
 import { authMiddleware } from './middleware/auth.middleware';
 import { createTenantMiddleware } from './middleware/tenant.middleware';
 import { createAuditMiddleware } from './middleware/audit.middleware';
