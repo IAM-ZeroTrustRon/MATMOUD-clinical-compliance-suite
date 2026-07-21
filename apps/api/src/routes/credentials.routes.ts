@@ -8,6 +8,27 @@ import { s3, PutObjectCommand } from '../config/s3';
 import { validateMimeType, MAX_FILE_SIZE_BYTES } from '../utils/validator';
 import pool from '../config/db';
 
+// ---------------------------------------------------------------------------
+// asyncHandler — wraps an async Express route handler so that any rejected
+// promise is automatically forwarded to Express error middleware via next(err).
+//
+// Express 4 does NOT catch promise rejections from async handlers. Without
+// this wrapper (or explicit try/catch + next(err) in every handler), a thrown
+// error causes an unhandled promise rejection — the request hangs and the
+// process logs a DEP0018 deprecation warning.
+//
+// Usage:
+//   router.get('/path', asyncHandler(async (req, res, next) => {
+//     const data = await riskyQuery();
+//     res.json(data);
+//   }));
+// ---------------------------------------------------------------------------
+const asyncHandler =
+  (fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) =>
+  (req: Request, res: Response, next: NextFunction): void => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+
 const router = Router();
 
 // Multer setup: in-memory storage for direct S3 upload, 10 MB limit
@@ -126,6 +147,51 @@ router.post(
     }
   }
 );
+/**
+ * TEMPORARY SEED ROUTE
+ * POST /credentials/seed
+ * Injects a mock credential to test RBAC and PHI masking.
+ *
+ * This handler uses asyncHandler so that any rejected promise is forwarded
+ * to Express error middleware. The INSERT uses ON CONFLICT DO NOTHING to
+ * remain idempotent — repeated calls will not fail on duplicate keys.
+ *
+ * If the table does not exist (relation "credentials" does not exist),
+ * run the pending migration first:
+ *
+ *   npx ts-node src/config/run-migrations.ts
+ *
+ * Then verify the table:
+ *
+ *   SELECT column_name, data_type
+ *   FROM information_schema.columns
+ *   WHERE table_name = 'credentials'
+ *   ORDER BY ordinal_position;
+ */
+router.post(
+  '/seed',
+  authMiddleware,
+  createTenantMiddleware(pool),
+  asyncHandler(async (req: Request, res: Response) => {
+    const client = req.dbClient!;
 
+    console.log('[SEED] Inserting mock credential for tenant:', req.tenantId);
+
+    const { rows } = await client.query(
+      `INSERT INTO credentials (tenant_id, patient_name, dob, ssn, license_number, expiration_date)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT DO NOTHING
+       RETURNING id, patient_name, dob, ssn, license_number, expiration_date`,
+      [req.tenantId, 'Test Patient', '1985-08-22', '000-11-2222', 'CRS-77492', '2028-01-01']
+    );
+
+    if (rows.length === 0) {
+      res.json({ message: 'Mock data already exists — skipped (idempotent)' });
+      return;
+    }
+
+    res.status(201).json({ message: 'Mock data injected', record: rows[0] });
+  })
+);
 export default router;
 

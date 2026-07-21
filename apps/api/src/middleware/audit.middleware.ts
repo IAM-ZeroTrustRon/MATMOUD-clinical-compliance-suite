@@ -33,15 +33,11 @@ export function createAuditMiddleware(db: Pool) {
       return;
     }
 
-    // Capture route path before the response ends (req.route may not be set yet
-    // at middleware registration time, so we defer reading it to res.end).
-    const originalEnd = res.end.bind(res) as typeof res.end;
-
-    res.end = function (
-      ...args: Parameters<typeof res.end>
-    ): ReturnType<typeof res.end> {
-      const result = originalEnd(...args);
-
+    // Defer audit logging until the response is fully sent.
+    // Using res.on('finish') is safer than patching res.end — it works
+    // regardless of how many middlewares are registered and does not
+    // interfere with other res.end interceptors.
+    res.on('finish', () => {
       // Only log if the request succeeded (2xx) and the user was authenticated.
       if (res.statusCode >= 200 && res.statusCode < 300 && req.user) {
         const actionType = `${req.method}:${req.route?.path ?? req.path}`;
@@ -68,9 +64,7 @@ export function createAuditMiddleware(db: Pool) {
           console.error('[HIPAA-AUDIT] Failed to write audit event:', err.message);
         });
       }
-
-      return result;
-    };
+    });
 
     next();
   };
