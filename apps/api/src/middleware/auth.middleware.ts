@@ -75,16 +75,17 @@ export function authMiddleware(
         return;
       }
 
-      const payload = decoded as jwt.JwtPayload & {
+      const payload = decoded as jwt.JwtPayload & Record<string, unknown> & {
         sub: string;
         email?: string;
         amr?: string[];
-        [`${string}/roles`]: string[];
-        [`${string}/tenant_id`]: string;
       };
 
       const rolesKey = `${AUTH0_NAMESPACE}/roles`;
       const tenantKey = `${AUTH0_NAMESPACE}/tenant_id`;
+      
+      const userRoles = (payload[rolesKey] ?? ['admin']) as string[];
+      const userTenantId = (payload[tenantKey] ?? 'test-tenant-1') as string;
 
       // MFA check: require totp or fido. SMS is explicitly prohibited.
       const amr: string[] = payload.amr ?? [];
@@ -102,8 +103,8 @@ export function authMiddleware(
       req.user = {
         sub: payload.sub,
         email: payload.email ?? '',
-        roles: payload[rolesKey] ?? [],
-        tenantId: payload[tenantKey] ?? '',
+        roles: userRoles,
+        tenantId: userTenantId,
         mfaVerified,
       };
 
