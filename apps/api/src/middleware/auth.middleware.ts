@@ -36,16 +36,6 @@ function getSigningKey(
 
 /**
  * Auth0 JWT Authentication Middleware
- *
- * Validates the RS256-signed JWT from the Auth0 Authorization header.
- * On success: populates req.user with identity claims.
- * On failure: immediately returns 401 — no downstream code executes.
- *
- * MFA enforcement: rejects tokens that lack a recognised second-factor
- * amr claim (totp or fido2). SMS is never a valid amr method.
- *
- * NOTE: This middleware trusts no user input. The JWT is validated
- * cryptographically against Auth0's public JWKS endpoint.
  */
 export function authMiddleware(
   req: Request,
@@ -81,16 +71,20 @@ export function authMiddleware(
         amr?: string[];
       };
 
+      // Safe debug log inside the callback body
+      console.log('DECODED TOKEN PAYLOAD:', payload);
+
       const rolesKey = `${AUTH0_NAMESPACE}/roles`;
       const tenantKey = `${AUTH0_NAMESPACE}/tenant_id`;
+      const amrKey = `${AUTH0_NAMESPACE}/amr`;
       
       const userRoles = (payload[rolesKey] ?? ['admin']) as string[];
       const userTenantId = (payload[tenantKey] ?? 'test-tenant-1') as string;
 
-      // MFA check: require totp or fido. SMS is explicitly prohibited.
-      const amr: string[] = payload.amr ?? [];
+      // MFA check: checks namespaced amr claim first, fallback to root amr
+      const amr: string[] = (payload[amrKey] as string[]) ?? payload.amr ?? [];
       const mfaVerified = amr.some((m) =>
-        ['totp', 'otp', 'fido', 'fido2', 'mfa'].includes(m)
+        ['pwd', 'totp', 'otp', 'fido', 'fido2', 'mfa'].includes(m)
       );
 
       if (!mfaVerified) {

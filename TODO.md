@@ -24,3 +24,11 @@
 - [ ] Set up AWS S3 bucket + KMS key for document upload
 - [ ] Configure SendGrid API key for email alerts
 - [ ] Set environment variables in `.env` for all services
+
+## Git / PR Steps
+- [x] Create credentials table migration
+- [x] Commit auth.middleware.ts changes
+- [x] Update README.md Beta Scope status
+- [x] Push to origin/blackboxai/implement-three-modules
+- [x] Open Pull Request → main
+

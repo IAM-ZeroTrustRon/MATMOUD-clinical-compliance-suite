@@ -12,11 +12,11 @@ This repository contains the **pilot-ready beta** — a single, focused core flo
 
 | Module | Status |
 |---|---|
-| Login & Org Setup (Auth0 + MFA) | ✅ In progress |
-| Credential Dashboard | ✅ In progress |
-| Document Upload (S3 SSE-KMS) | ✅ In progress |
-| Email Alerts Workflow | ✅ In progress |
-| Audit Trail | ✅ In progress |
+| Login & Org Setup (Auth0 + MFA) | ✅ Code complete |
+| Credential Dashboard | ✅ Code complete |
+| Document Upload (S3 SSE-KMS) | ✅ Code complete |
+| Email Alerts Workflow | ✅ Code complete |
+| Audit Trail | ✅ Code complete |
 
 > **Out of scope for beta:** SMS alerts, wound care workflows, EHR integrations (Epic/Cerner/HL7/FHIR), advanced analytics, billing automation, research portals.
 
