@@ -1,34 +1,46 @@
-# MAT/MOUD Clinical Compliance Suite — Beta Status
+# MAT/MOUD Clinical Compliance Suite — Verification Progress
 
-## Core Infrastructure ✅
-- [x] PostgreSQL connection with startup test (`testConnection()` in `db.ts`)
-- [x] Health endpoint with DB probe (`GET /health` returns `postgres: "connected"`)
-- [x] Server fails fast if DB unreachable (clear error, not masked AggregateError)
-- [x] MFA enforcement re-enabled (SMS auth rejected with 401)
-- [x] Audit middleware uses safe `res.on('finish')` instead of patching `res.end()`
-- [x] Import order fixed in `run-migrations.ts` (dotenv before pool)
-- [x] TypeScript compiles with zero errors
+## Phase 1: Verify Core API Functionality
 
-## Beta Module Status (from README)
+### ✅ 1. Environment & Configuration
+- [x] Created `.env` with DATABASE_URL, AUTH0_DOMAIN, AUTH0_AUDIENCE, AUTH0_NAMESPACE
+- [x] Created `GET /audit-logs` route for compliance audit trail viewing
+- [x] Wired audit route into server.ts at `/audit-logs`
 
-| Module | Status | Notes |
-|---|---|---|
-| Login & Org Setup (Auth0 + MFA) | ✅ Code complete | Requires valid Auth0 JWT to test |
-| Credential Dashboard | ✅ Code complete | Protected by auth middleware |
-| Document Upload (S3 SSE-KMS) | ✅ Code complete | Requires AWS S3 + KMS config |
-| Email Alerts Workflow | ✅ Code complete | Requires SendGrid API key |
-| Audit Trail | ✅ Code complete | INSERT-only table, requires DB migration |
+### 🔲 2. Confirm Seed Response (POST /credentials/seed)
+- [ ] Verify POST http://localhost:3000/credentials/seed returns 200/201
+- [ ] Confirm mock records are created in PostgreSQL
 
-## To Fully Test All Routes
-- [ ] Generate a valid Auth0 JWT with MFA claims (`amr` includes `totp` or `fido`)
-- [ ] Set up AWS S3 bucket + KMS key for document upload
-- [ ] Configure SendGrid API key for email alerts
-- [ ] Set environment variables in `.env` for all services
+### 🔲 3. Test Reading Data (GET /credentials)
+- [ ] Verify GET http://localhost:3000/credentials returns array of credentials
+- [ ] Confirm Bearer token auth works
+- [ ] Check PHI masking is applied correctly
 
-## Git / PR Steps
-- [x] Create credentials table migration
-- [x] Commit auth.middleware.ts changes
-- [x] Update README.md Beta Scope status
-- [x] Push to origin/blackboxai/implement-three-modules
-- [x] Open Pull Request → main
+### 🔲 4. Verify Compliance Audit Logs (GET /audit-logs)
+- [ ] Verify audit events are logged on seed/credential access
+- [ ] Confirm GET /audit-logs returns audit trail data
+- [ ] Verify tenant isolation — only current tenant's events returned
+
+## Phase 2: Frontend & Client Integration
+
+### ✅ 1. Frontend Scaffolding
+- [x] Created `apps/web` with React + Vite + TypeScript
+- [x] Created `.env` with API URL and Auth0 config
+- [x] Configured Vite proxy for API requests
+- [x] Built credential dashboard UI with tabs: Credentials + Audit Logs
+- [x] PHI-restricted fields highlighted with yellow background
+
+### 🔲 2. Install Dependencies
+- [ ] `npm install` in apps/api — in progress
+- [ ] `npm install` in apps/web — in progress
+
+### 🔲 3. Launch Development Environment
+- [ ] Start API: `cd apps/api && npm run dev`
+- [ ] Start Web: `cd apps/web && npm run dev`
+
+### 🔲 4. Test End-to-End User Flow
+- [ ] Navigate to http://localhost:5173
+- [ ] Log in via Auth0 interactive login + MFA
+- [ ] Verify dashboard renders credentials
+- [ ] Verify audit trail tab shows events
 

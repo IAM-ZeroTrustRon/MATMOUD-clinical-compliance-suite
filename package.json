@@ -1,0 +1,19 @@
+{
+  "name": "clinical-compliance-suite",
+  "private": true,
+  "version": "1.0.0-beta",
+  "description": "MAT/MOUD Clinical Compliance Suite — Monorepo",
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/api & npm run dev --workspace=apps/web",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspace=apps/api && npm run build --workspace=apps/web",
+    "migrate": "npm run migrate --workspace=apps/api",
+    "install:all": "cd apps/api && npm install && cd ../../apps/web && npm install"
+  },
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ]
+}
+
