@@ -36,6 +36,12 @@ function getSigningKey(
 
 /**
  * Auth0 JWT Authentication Middleware
+ *
+ * SECURITY NOTES:
+ *   - This middleware uses RS256 JWT verification via Auth0's JWKS endpoint.
+ *   - No local bypass or dev-mode escape hatches exist in this file.
+ *   - Missing roles or tenant_id claims result in a hard 403 (fail-closed).
+ *   - MFA verification is enforced via the amr claim.
  */
 export function authMiddleware(
   req: Request,
@@ -71,15 +77,23 @@ export function authMiddleware(
         amr?: string[];
       };
 
-      // Safe debug log inside the callback body
-      console.log('DECODED TOKEN PAYLOAD:', payload);
-
       const rolesKey = `${AUTH0_NAMESPACE}/roles`;
       const tenantKey = `${AUTH0_NAMESPACE}/tenant_id`;
       const amrKey = `${AUTH0_NAMESPACE}/amr`;
-      
-      const userRoles = (payload[rolesKey] ?? ['admin']) as string[];
-      const userTenantId = (payload[tenantKey] ?? 'test-tenant-1') as string;
+
+      // Fail-closed: reject if roles claim is missing or empty
+      const userRoles = payload[rolesKey] as string[] | undefined;
+      if (!userRoles || !Array.isArray(userRoles) || userRoles.length === 0) {
+        res.status(403).json({ error: 'Missing or empty roles claim' });
+        return;
+      }
+
+      // Fail-closed: reject if tenant_id claim is missing
+      const userTenantId = payload[tenantKey] as string | undefined;
+      if (!userTenantId || typeof userTenantId !== 'string') {
+        res.status(403).json({ error: 'Missing tenant_id claim' });
+        return;
+      }
 
       // MFA check: checks namespaced amr claim first, fallback to root amr
       const amr: string[] = (payload[amrKey] as string[]) ?? payload.amr ?? [];
