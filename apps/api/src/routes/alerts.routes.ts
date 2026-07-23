@@ -3,7 +3,7 @@ import { authMiddleware } from '../middleware/auth.middleware';
 import { createTenantMiddleware } from '../middleware/tenant.middleware';
 import { createAuditMiddleware, auditPhiRead } from '../middleware/audit.middleware';
 import { requireRole, ROLES } from '../middleware/rbac';
-import { getExpiringCredentials } from '../services/expiration.service';
+import { getExpiringCredentials, markAlertSent } from '../services/expiration.service';
 import { sendExpirationAlert, validateNoPhiInTemplateData } from '../services/email.service';
 import pool from '../config/db';
 
@@ -47,7 +47,6 @@ router.post(
       // Validate that no PHI ends up in email templates
       const templateData = expiringCreds.map((cred) => ({
         credentialId: cred.id,
-        patientName: cred.patient_name,
         expirationDate: cred.expiration_date,
       }));
 
@@ -65,10 +64,12 @@ router.post(
             templateId: process.env.SENDGRID_TEMPLATE_ID || '',
             dynamicTemplateData: {
               credentialId: cred.id,
-              patientName: cred.patient_name,
               expirationDate: cred.expiration_date,
             },
           });
+
+          // Mark as alerted to prevent duplicate sends on the next run
+          await markAlertSent(client, cred.id);
 
           // Log each alert send as a PHI read (since we're acting on credential data)
           await auditPhiRead(pool, req, 'alert_sent', cred.id).catch((err: Error) => {

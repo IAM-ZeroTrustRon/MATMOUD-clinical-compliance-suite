@@ -6,6 +6,7 @@ import { createAuditMiddleware } from './middleware/audit.middleware';
 import credentialsRouter from './routes/credentials.routes';
 import alertsRouter from './routes/alerts.routes';
 import auditRouter from './routes/audit.routes';
+import { startAlertScheduler } from './services/scheduler';
 import pool, { testConnection } from './config/db';
 
 // ---------------------------------------------------------------------------
@@ -128,6 +129,9 @@ if (process.env.NODE_ENV !== 'test') {
   // ---------------------------------------------------------------
   testConnection()
     .then(() => {
+      // Start the daily alert checker
+      startAlertScheduler();
+
       app.listen(PORT, () => {
         console.log(`[CLINICAL-COMPLIANCE] API listening on port ${PORT}`);
         console.log(`[CLINICAL-COMPLIANCE] Environment: ${process.env.NODE_ENV ?? 'development'}`);
