@@ -5,6 +5,7 @@ import { createTenantMiddleware } from './middleware/tenant.middleware';
 import { createAuditMiddleware } from './middleware/audit.middleware';
 import credentialsRouter from './routes/credentials.routes';
 import alertsRouter from './routes/alerts.routes';
+import auditRouter from './routes/audit.routes';
 import pool, { testConnection } from './config/db';
 
 // ---------------------------------------------------------------------------
@@ -83,6 +84,7 @@ app.get('/health', async (_req, res) => {
 
 app.use('/credentials', credentialsRouter);
 app.use('/alerts', alertsRouter);
+app.use('/audit-logs', auditRouter);
 
 // ---------------------------------------------------------------------------
 // Global error handler — must be registered last
