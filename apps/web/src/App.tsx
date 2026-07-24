@@ -4,10 +4,10 @@ import './App.css';
 
 interface Credential {
   id: string;
-  patient_name: string;
-  dob: string;
-  ssn: string;
-  license_number: string;
+  provider_name: string; // PHI
+  dob: string; // PHI
+  ssn: string; // PHI
+  license_number: string; // PHI
   expiration_date: string;
   created_at: string;
 }
@@ -20,6 +20,68 @@ interface AuditEvent {
   occurred_at: string;
   ip_address: string | null;
   http_status: number;
+}
+
+/** --------------------------------------------------------------------------
+ * UploadCell — renders a file input + upload button for a single credential.
+ * Posts to POST /credentials/:id/upload with the file.
+ * Only shown when the user holds a Tier 4+ role (enforced server-side).
+ * -------------------------------------------------------------------------- */
+interface UploadCellProps {
+  credentialId: string;
+  getAuthHeaders: () => Promise<Record<string, string>>;
+  API_BASE: string;
+}
+
+function UploadCell({ credentialId, getAuthHeaders, API_BASE }: UploadCellProps) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState<string | null>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadResult(null);
+
+    try {
+      const token = await getAuthHeaders().then((h) => h.Authorization.replace('Bearer ', ''));
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch(`${API_BASE}/credentials/${credentialId}/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok || res.status === 201) {
+        setUploadResult('✅');
+      } else {
+        setUploadResult(`❌ ${data.error || res.statusText}`);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setUploadResult(`❌ ${message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="upload-cell">
+      <input
+        type="file"
+        accept=".pdf,.png,.jpg,.jpeg"
+        onChange={handleUpload}
+        disabled={uploading}
+        title="Upload PDF or image (max 10 MB)"
+      />
+      {uploading && <span className="upload-spinner">⏳</span>}
+      {uploadResult && <span className="upload-result">{uploadResult}</span>}
+    </div>
+  );
 }
 
 function App() {
@@ -212,9 +274,11 @@ function App() {
         {activeTab === 'dashboard' && (
           <div className="dashboard">
             <div className="action-bar">
-              <button className="btn btn-primary" onClick={handleSeed}>
-                🌱 Seed Test Data
-              </button>
+              {import.meta.env.DEV && (
+                <button className="btn btn-primary" onClick={handleSeed}>
+                  🌱 Seed Test Data
+                </button>
+              )}
               <button className="btn btn-secondary" onClick={handleFetchCredentials}>
                 🔄 Refresh Credentials
               </button>
@@ -242,12 +306,13 @@ function App() {
                       <th>License #</th>
                       <th>Expires</th>
                       <th>Created</th>
+                      <th>Document</th>
                     </tr>
                   </thead>
                   <tbody>
                     {credentials.map((cred) => (
                       <tr key={cred.id}>
-                        <td>{cred.patient_name}</td>
+                        <td>{cred.provider_name}</td>
                         <td>{cred.dob?.substring(0, 10)}</td>
                         <td className={cred.ssn === '[RESTRICTED]' ? 'phi-restricted' : ''}>
                           {cred.ssn}
@@ -257,6 +322,9 @@ function App() {
                         </td>
                         <td>{cred.expiration_date?.substring(0, 10)}</td>
                         <td>{new Date(cred.created_at).toLocaleDateString()}</td>
+                        <td>
+                          <UploadCell credentialId={cred.id} getAuthHeaders={getAuthHeaders} API_BASE={API_BASE} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>

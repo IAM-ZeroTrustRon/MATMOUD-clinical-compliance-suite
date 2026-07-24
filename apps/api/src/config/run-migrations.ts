@@ -7,6 +7,7 @@ const MIGRATION_FILES = [
   'init-audit-table.sql',
   'init-credentials-table.sql',
   'init-last-alerted-column.sql',
+  'init-rename-provider-columns.sql',
 ];
 
 /**

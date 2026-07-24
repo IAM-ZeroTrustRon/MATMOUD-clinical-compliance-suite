@@ -59,7 +59,7 @@ router.get(
     try {
       const client = req.dbClient!;
       const { rows } = await client.query(
-        `SELECT id, patient_name, dob, ssn, license_number, expiration_date, created_at
+        `SELECT id, provider_name, dob, ssn, license_number, expiration_date, document_key, created_at
          FROM credentials
          WHERE tenant_id = current_setting('app.current_tenant_id', true)
          ORDER BY expiration_date ASC NULLS LAST`
@@ -73,7 +73,7 @@ router.get(
       }
 
       // Apply PHI masking based on user's tier
-      const phiFields: string[] = ['ssn', 'dob', 'license_number'];
+      const phiFields: string[] = ['provider_name', 'ssn', 'dob', 'license_number'];
       const safe = rows.map((row: Record<string, unknown>) =>
         maskPhiFields(req, row, phiFields)
       );
@@ -137,6 +137,12 @@ router.post(
 
       const result = await s3.send(cmd);
 
+      // Persist the document key on the credential record
+      await pool.query(
+        `UPDATE credentials SET document_key = $1 WHERE id = $2 AND tenant_id = current_setting('app.current_tenant_id', true)`,
+        [key, req.params.id]
+      );
+
       res.status(201).json({
         status: 'uploaded',
         etag: result.ETag,
@@ -147,6 +153,73 @@ router.post(
     }
   }
 );
+/**
+ * POST /credentials
+ * Create a new credential record.
+ *
+ * Middleware chain: Auth → Tenant → Audit → RBAC (Tier 4+)
+ *
+ * Body: { provider_name, license_number, expiration_date, ssn?, dob? }
+ */
+router.post(
+  '/',
+  authMiddleware,
+  createTenantMiddleware(pool),
+  createAuditMiddleware(pool),
+  requireMinTier(TIER.CLINICAL_BACKEND),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { provider_name, license_number, expiration_date, ssn, dob } = req.body;
+
+    if (!provider_name || !license_number || !expiration_date) {
+      res.status(400).json({ error: 'provider_name, license_number, and expiration_date are required' });
+      return;
+    }
+
+    const client = req.dbClient!;
+    const { rows } = await client.query(
+      `INSERT INTO credentials (tenant_id, provider_name, license_number, expiration_date, ssn, dob)
+       VALUES (current_setting('app.current_tenant_id', true), $1, $2, $3, $4, $5)
+       RETURNING id, provider_name, license_number, expiration_date, created_at`,
+      [provider_name, license_number, expiration_date, ssn ?? null, dob ?? null]
+    );
+
+    res.status(201).json(rows[0]);
+  })
+);
+
+/**
+ * GET /credentials/:id/document
+ * Retrieve the S3 document key for a credential's uploaded file.
+ *
+ * Middleware chain: Auth → Tenant → RBAC (Tier 4+)
+ */
+router.get(
+  '/:id/document',
+  authMiddleware,
+  createTenantMiddleware(pool),
+  requireMinTier(TIER.CLINICAL_BACKEND),
+  asyncHandler(async (req: Request, res: Response) => {
+    const client = req.dbClient!;
+    const { rows } = await client.query(
+      `SELECT document_key FROM credentials
+       WHERE id = $1 AND tenant_id = current_setting('app.current_tenant_id', true)`,
+      [req.params.id]
+    );
+
+    if (rows.length === 0) {
+      res.status(404).json({ error: 'credential_not_found' });
+      return;
+    }
+
+    if (!rows[0].document_key) {
+      res.status(404).json({ error: 'no_document_uploaded' });
+      return;
+    }
+
+    res.json({ document_key: rows[0].document_key });
+  })
+);
+
 /**
  * TEMPORARY SEED ROUTE
  * POST /credentials/seed
@@ -178,11 +251,11 @@ router.post(
     console.log('[SEED] Inserting mock credential for tenant:', req.tenantId);
 
     const { rows } = await client.query(
-      `INSERT INTO credentials (tenant_id, patient_name, dob, ssn, license_number, expiration_date)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO credentials (tenant_id, provider_name, license_number, expiration_date)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT DO NOTHING
-       RETURNING id, patient_name, dob, ssn, license_number, expiration_date`,
-      [req.tenantId, 'Test Patient', '1985-08-22', '000-11-2222', 'CRS-77492', '2028-01-01']
+       RETURNING id, provider_name, license_number, expiration_date`,
+      [req.tenantId, 'Test Provider RN', 'CRS-77492', '2028-01-01']
     );
 
     if (rows.length === 0) {
