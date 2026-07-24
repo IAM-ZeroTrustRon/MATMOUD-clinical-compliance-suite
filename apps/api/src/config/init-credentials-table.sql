@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS credentials (
   tenant_id        TEXT        NOT NULL,
 
   -- Core credential fields
-  patient_name     TEXT        NOT NULL,          -- PHI
+  provider_name    TEXT        NOT NULL,          -- PHI
   license_type     TEXT,                           -- e.g. "RN", "LPN", "MD", "NP", "PA"
   license_number   TEXT,                           -- PHI — state-issued license number
   license_state    TEXT,                           -- e.g. "NY", "CA", "TX"

@@ -369,6 +369,29 @@ code {
   color: var(--color-text-secondary);
 }
 
+/* Upload Cell */
+
+.upload-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.upload-cell input[type="file"] {
+  max-width: 100px;
+  font-size: 0.75rem;
+  padding: 2px 4px;
+}
+
+.upload-spinner {
+  font-size: 0.875rem;
+}
+
+.upload-result {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 /* Responsive */
 
 @media (max-width: 768px) {

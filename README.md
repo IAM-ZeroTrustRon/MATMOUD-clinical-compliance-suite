@@ -10,13 +10,13 @@ This repository contains the **pilot-ready beta** — a single, focused core flo
 
 > **Login → Add Credential → Upload Document → Set Expiration → Receive Alert → View Compliance Status**
 
-| Module | Status |
-|---|---|
-| Login & Org Setup (Auth0 + MFA) | ✅ Code complete |
-| Credential Dashboard | ✅ Code complete |
-| Document Upload (S3 SSE-KMS) | ✅ Code complete |
-| Email Alerts Workflow | ✅ Code complete |
-| Audit Trail | ✅ Code complete |
+| Module | Status | Notes |
+|---|---|---|
+| Login & Org Setup (Auth0 + MFA) | ✅ Code complete | Frontend + Auth0 wiring verified |
+| Credential Dashboard | ✅ Code complete | Frontend table + backend routes verified |
+| Document Upload (S3 SSE-KMS) | 🟡 Backend complete, frontend partial | `POST /:id/upload` exists with SSE-KMS, Multer, MIME validation. Upload UI per row added to dashboard. |
+| Email Alerts Workflow | 🟡 Backend complete, scheduler added | `POST /alerts/run` with SendGrid integration, PHI validation, audit logging. Daily cron scheduler wired in. |
+| Audit Trail | ✅ Code complete | RLS-scoped, parameterized, Tier 4+ gated, pagination verified |
 
 > **Out of scope for beta:** SMS alerts, wound care workflows, EHR integrations (Epic/Cerner/HL7/FHIR), advanced analytics, billing automation, research portals.
 

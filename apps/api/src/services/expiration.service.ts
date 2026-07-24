@@ -2,7 +2,7 @@ import { PoolClient } from 'pg';
 
 export interface ExpiringCredential {
   id: string;
-  patient_name: string;
+  provider_name: string;
   expiration_date: string;
 }
 
@@ -29,7 +29,7 @@ export async function getExpiringCredentials(
   days: number
 ): Promise<ExpiringCredential[]> {
   const { rows } = await dbClient.query<ExpiringCredential>(
-    `SELECT id, patient_name, expiration_date
+    `SELECT id, provider_name, expiration_date
      FROM credentials
      WHERE expiration_date <= NOW() + ($1 || ' days')::interval
        AND expiration_date > NOW()
