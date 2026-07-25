@@ -1,88 +1,12 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { useState, useEffect, useCallback } from 'react';
+import { Credential, AuditEvent } from './components/types';
+import { UserAccessBadge } from './components/UserAccessBadge';
+import { ComplianceStatusBadge, ComplianceSummaryStrip } from './components/ComplianceStatus';
+import { PhiRevealCell } from './components/PhiRevealCell';
+import { AddCredentialForm } from './components/AddCredentialForm';
+import { DocumentCell } from './components/DocumentCell';
 import './App.css';
-
-interface Credential {
-  id: string;
-  provider_name: string; // PHI
-  dob: string; // PHI
-  ssn: string; // PHI
-  license_number: string; // PHI
-  expiration_date: string;
-  created_at: string;
-}
-
-interface AuditEvent {
-  id: number;
-  user_id: string;
-  action_type: string;
-  resource_id: string | null;
-  occurred_at: string;
-  ip_address: string | null;
-  http_status: number;
-}
-
-/** --------------------------------------------------------------------------
- * UploadCell — renders a file input + upload button for a single credential.
- * Posts to POST /credentials/:id/upload with the file.
- * Only shown when the user holds a Tier 4+ role (enforced server-side).
- * -------------------------------------------------------------------------- */
-interface UploadCellProps {
-  credentialId: string;
-  getAuthHeaders: () => Promise<Record<string, string>>;
-  API_BASE: string;
-}
-
-function UploadCell({ credentialId, getAuthHeaders, API_BASE }: UploadCellProps) {
-  const [uploading, setUploading] = useState(false);
-  const [uploadResult, setUploadResult] = useState<string | null>(null);
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    setUploadResult(null);
-
-    try {
-      const token = await getAuthHeaders().then((h) => h.Authorization.replace('Bearer ', ''));
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch(`${API_BASE}/credentials/${credentialId}/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (res.ok || res.status === 201) {
-        setUploadResult('✅');
-      } else {
-        setUploadResult(`❌ ${data.error || res.statusText}`);
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      setUploadResult(`❌ ${message}`);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <div className="upload-cell">
-      <input
-        type="file"
-        accept=".pdf,.png,.jpg,.jpeg"
-        onChange={handleUpload}
-        disabled={uploading}
-        title="Upload PDF or image (max 10 MB)"
-      />
-      {uploading && <span className="upload-spinner">⏳</span>}
-      {uploadResult && <span className="upload-result">{uploadResult}</span>}
-    </div>
-  );
-}
 
 function App() {
   const {
@@ -100,6 +24,7 @@ function App() {
   const [apiStatus, setApiStatus] = useState<string>('Checking API...');
   const [seedResult, setSeedResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
@@ -159,6 +84,9 @@ function App() {
       const data = await res.json();
       if (res.ok) {
         setCredentials(data);
+      } else if (res.status === 401 || res.status === 403) {
+        const message = data.error || res.statusText;
+        setError(`You don't have permission to view this dashboard: ${message}. Contact your administrator.`);
       } else {
         setError(`Failed to fetch credentials: ${data.error || res.statusText}`);
       }
@@ -166,6 +94,11 @@ function App() {
       const message = err instanceof Error ? err.message : 'Unknown error';
       setError(message);
     }
+  };
+
+  const handleAddCredential = () => {
+    setShowAddForm(false);
+    handleFetchCredentials();
   };
 
   const handleFetchAuditLogs = async () => {
@@ -240,6 +173,7 @@ function App() {
         <div className="header-content">
           <h1>Clinical Compliance Suite</h1>
           <div className="user-info">
+            <UserAccessBadge />
             <span className="user-email">{user?.email}</span>
             <button className="btn btn-secondary" onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
               Log Out
@@ -279,6 +213,9 @@ function App() {
                   🌱 Seed Test Data
                 </button>
               )}
+              <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
+                ➕ Add Credential
+              </button>
               <button className="btn btn-secondary" onClick={handleFetchCredentials}>
                 🔄 Refresh Credentials
               </button>
@@ -290,6 +227,17 @@ function App() {
               </div>
             )}
 
+            {showAddForm && (
+              <AddCredentialForm
+                apiBase={API_BASE}
+                getAuthHeaders={getAuthHeaders}
+                onCreated={handleAddCredential}
+                onCancel={() => setShowAddForm(false)}
+              />
+            )}
+
+            <ComplianceSummaryStrip credentials={credentials} />
+
             <div className="credentials-table-wrapper">
               <h2>Credentials ({credentials.length})</h2>
               {credentials.length === 0 ? (
@@ -300,7 +248,8 @@ function App() {
                 <table className="credentials-table">
                   <thead>
                     <tr>
-                      <th>Patient Name</th>
+                      <th>Provider Name</th>
+                      <th>Compliance</th>
                       <th>DOB</th>
                       <th>SSN</th>
                       <th>License #</th>
@@ -313,17 +262,22 @@ function App() {
                     {credentials.map((cred) => (
                       <tr key={cred.id}>
                         <td>{cred.provider_name}</td>
-                        <td>{cred.dob?.substring(0, 10)}</td>
-                        <td className={cred.ssn === '[RESTRICTED]' ? 'phi-restricted' : ''}>
-                          {cred.ssn}
-                        </td>
+                        <td><ComplianceStatusBadge expirationDate={cred.expiration_date} /></td>
+                        <td><PhiRevealCell value={cred.dob} /></td>
+                        <td><PhiRevealCell value={cred.ssn} /></td>
                         <td className={cred.license_number === '[RESTRICTED]' ? 'phi-restricted' : ''}>
                           {cred.license_number}
                         </td>
                         <td>{cred.expiration_date?.substring(0, 10)}</td>
                         <td>{new Date(cred.created_at).toLocaleDateString()}</td>
                         <td>
-                          <UploadCell credentialId={cred.id} getAuthHeaders={getAuthHeaders} API_BASE={API_BASE} />
+                          <DocumentCell
+                            credentialId={cred.id}
+                            hasDocument={cred.document_key !== null}
+                            apiBase={API_BASE}
+                            getAuthHeaders={getAuthHeaders}
+                            onUploaded={handleFetchCredentials}
+                          />
                         </td>
                       </tr>
                     ))}
@@ -389,4 +343,3 @@ function App() {
 }
 
 export default App;
-

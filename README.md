@@ -12,9 +12,9 @@ This repository contains the **pilot-ready beta** — a single, focused core flo
 
 | Module | Status | Notes |
 |---|---|---|
-| Login & Org Setup (Auth0 + MFA) | ✅ Code complete | Frontend + Auth0 wiring verified |
-| Credential Dashboard | ✅ Code complete | Frontend table + backend routes verified |
-| Document Upload (S3 SSE-KMS) | 🟡 Backend complete, frontend partial | `POST /:id/upload` exists with SSE-KMS, Multer, MIME validation. Upload UI per row added to dashboard. |
+| Login & Org Setup (Auth0 + MFA) | ✅ Code complete | Frontend + Auth0 wiring verified; role-based access badge with fail-closed fallback |
+| Credential Dashboard | ✅ Code complete | Frontend table with compliance badges, PHI reveal cells, add-credential form, and summary strip; backend routes verified |
+| Document Upload (S3 SSE-KMS) | ✅ Code complete | `POST /:id/upload` with SSE-KMS, Multer, MIME validation; `GET /:id/document` signed URL retrieval; DocumentCell component handles upload + view |
 | Email Alerts Workflow | 🟡 Backend complete, scheduler added | `POST /alerts/run` with SendGrid integration, PHI validation, audit logging. Daily cron scheduler wired in. |
 | Audit Trail | ✅ Code complete | RLS-scoped, parameterized, Tier 4+ gated, pagination verified |
 
