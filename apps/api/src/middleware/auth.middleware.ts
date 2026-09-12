@@ -35,13 +35,32 @@ function getSigningKey(
 }
 
 /**
+ * Auth0 `amr` (Authentication Methods Reference) values that count as proof
+ * of an actual second authentication factor.
+ *
+ * Deliberately excluded — do not re-add without reading this comment:
+ *   - 'pwd'  Auth0 emits this for a plain username/password login. It is NOT
+ *            a second factor. Including it makes the check below pass for
+ *            every authenticated session, silently disabling MFA enforcement
+ *            entirely. (Audit finding MOUD-01.)
+ *   - 'otp'  Ambiguous. Auth0 emits 'totp' for authenticator-app verification;
+ *            'otp' does not reliably indicate a second factor was used.
+ *
+ * SMS/voice factors are intentionally not accepted — see the rejection
+ * message below. Any change to this list must be accompanied by a matching
+ * update to auth.middleware.test.ts.
+ */
+const ACCEPTED_MFA_METHODS: readonly string[] = ['mfa', 'totp', 'fido', 'fido2'];
+
+/**
  * Auth0 JWT Authentication Middleware
  *
  * SECURITY NOTES:
  *   - This middleware uses RS256 JWT verification via Auth0's JWKS endpoint.
  *   - No local bypass or dev-mode escape hatches exist in this file.
  *   - Missing roles or tenant_id claims result in a hard 403 (fail-closed).
- *   - MFA verification is enforced via the amr claim.
+ *   - MFA is enforced by matching the amr claim against ACCEPTED_MFA_METHODS
+ *     above. A password-only login does not satisfy this check.
  */
 export function authMiddleware(
   req: Request,
@@ -95,11 +114,12 @@ export function authMiddleware(
         return;
       }
 
-      // MFA check: checks namespaced amr claim first, fallback to root amr
-      const amr: string[] = (payload[amrKey] as string[]) ?? payload.amr ?? [];
-      const mfaVerified = amr.some((m) =>
-        ['pwd', 'totp', 'otp', 'fido', 'fido2', 'mfa'].includes(m)
-      );
+      // MFA check: checks namespaced amr claim first, fallback to root amr.
+      // Fail-closed: an absent or empty amr claim yields [], which matches
+      // nothing in ACCEPTED_MFA_METHODS and is therefore rejected.
+      const rawAmr = (payload[amrKey] as string[] | undefined) ?? payload.amr;
+      const amr: string[] = Array.isArray(rawAmr) ? rawAmr : [];
+      const mfaVerified = amr.some((m) => ACCEPTED_MFA_METHODS.includes(m));
 
       if (!mfaVerified) {
         res

@@ -4,9 +4,10 @@ import { authMiddleware } from '../middleware/auth.middleware';
 import { createTenantMiddleware } from '../middleware/tenant.middleware';
 import { createAuditMiddleware, auditPhiRead } from '../middleware/audit.middleware';
 import { requireRole, requireMinTier, maskPhiFields, ROLES, TIER } from '../middleware/rbac';
-import { s3, PutObjectCommand } from '../config/s3';
-import { validateMimeType, MAX_FILE_SIZE_BYTES } from '../utils/validator';
+import { s3, PutObjectCommand, getSignedDocumentUrl, SIGNED_URL_TTL_SECONDS } from '../config/s3';
+import { validateUpload, ALLOWED_TYPES_FOR_DISPLAY, MAX_FILE_SIZE_BYTES } from '../utils/validator';
 import pool from '../config/db';
+import { randomUUID } from 'crypto';
 
 // ---------------------------------------------------------------------------
 // asyncHandler — wraps an async Express route handler so that any rejected
@@ -114,23 +115,37 @@ router.post(
         return;
       }
 
-      // Validate MIME type before any S3 operation
-      if (!validateMimeType(file.mimetype)) {
+      // MOUD-04: validate the DECLARED type, the ACTUAL bytes, and that the two
+      // agree — before any S3 operation. The client-asserted Content-Type alone
+      // is not a security control; a client can claim whatever it likes.
+      const validation = validateUpload(file.mimetype, file.buffer);
+
+      if (!validation.ok) {
         res.status(400).json({
-          error: 'unsupported_file_type',
-          allowedTypes: ['application/pdf', 'image/png', 'image/jpeg'],
+          error: validation.error,
+          allowedTypes: ALLOWED_TYPES_FOR_DISPLAY,
         });
         return;
       }
 
-      // Build S3 key with tenant-scoped prefix — no PHI in key name
-      const key = `tenant/${req.tenantId}/cred/${req.params.id}/${file.originalname}`;
+      // MOUD-05: the S3 key is generated server-side and contains no
+      // user-supplied input. The uploaded filename previously flowed straight
+      // into the key, which put identifying information ("Jane-Doe-SSN.pdf")
+      // into bucket listings, access logs, and CloudTrail events — none of
+      // which are treated as PHI stores. For substance use disorder records the
+      // association of a patient with this system is itself the protected fact
+      // (42 CFR Part 2), so the original filename is discarded rather than
+      // stored in the path. The extension comes from the DETECTED type, not
+      // from the filename.
+      const key = `tenant/${req.tenantId}/cred/${req.params.id}/${randomUUID()}.${validation.extension}`;
 
       const cmd = new PutObjectCommand({
         Bucket: process.env.S3_BUCKET,
         Key: key,
         Body: file.buffer,
-        ContentType: file.mimetype,
+        // Store the detected type, not the claimed one — this is what the
+        // object will later be served as.
+        ContentType: validation.mimeType,
         ServerSideEncryption: 'aws:kms',
         SSEKMSKeyId: process.env.KMS_KEY_ID,
       });
@@ -189,9 +204,32 @@ router.post(
 
 /**
  * GET /credentials/:id/document
- * Retrieve the S3 document key for a credential's uploaded file.
+ * Issue a short-lived presigned URL for a credential's uploaded document.
  *
  * Middleware chain: Auth → Tenant → RBAC (Tier 4+)
+ *
+ * SECURITY (audit findings MOUD-03 and MOUD-07):
+ *
+ *   MOUD-03 — This endpoint previously returned the raw S3 object key. The
+ *   frontend expected a usable URL, so the feature was broken, and more
+ *   importantly the application had no designed mechanism for retrieving
+ *   stored PHI. It now returns a presigned GET URL valid for
+ *   SIGNED_URL_TTL_SECONDS. The raw key is never sent to the client.
+ *
+ *   MOUD-07 — createAuditMiddleware only covers mutating methods, so this GET
+ *   produced no audit record. Retrieving a PHI document is the single most
+ *   sensitive read in this application and must be attributable.
+ *
+ *   The audit write is intentionally AWAITED and fails closed: if the audit
+ *   event cannot be written, no URL is minted and the request returns 503.
+ *   This differs deliberately from the fire-and-forget logging on the list
+ *   route. Releasing a PHI document without a corresponding audit record is
+ *   precisely the outcome the audit trail exists to prevent, and in a product
+ *   whose compliance value rests on that trail, a failed audit is a failed
+ *   request — not a warning on stderr.
+ *
+ *   Tenant scoping is enforced in the WHERE clause AND by the RLS policy on
+ *   `credentials`, so a caller cannot obtain a URL for another tenant's object.
  */
 router.get(
   '/:id/document',
@@ -216,55 +254,83 @@ router.get(
       return;
     }
 
-    res.json({ document_key: rows[0].document_key });
+    // Audit BEFORE the URL exists — never mint a credential we failed to log.
+    try {
+      await auditPhiRead(pool, req, 'credential_document', req.params.id);
+    } catch (err) {
+      console.error(
+        '[HIPAA-AUDIT] Refusing to issue document URL — audit write failed:',
+        err instanceof Error ? err.message : String(err)
+      );
+      res.status(503).json({ error: 'audit_unavailable' });
+      return;
+    }
+
+    const url = await getSignedDocumentUrl(rows[0].document_key);
+
+    res.json({ url, expiresIn: SIGNED_URL_TTL_SECONDS });
   })
 );
 
 /**
- * TEMPORARY SEED ROUTE
+ * DEVELOPMENT-ONLY SEED ROUTE
  * POST /credentials/seed
  * Injects a mock credential to test RBAC and PHI masking.
  *
- * This handler uses asyncHandler so that any rejected promise is forwarded
- * to Express error middleware. The INSERT uses ON CONFLICT DO NOTHING to
- * remain idempotent — repeated calls will not fail on duplicate keys.
+ * SECURITY (audit finding MOUD-02):
+ *   This route is NOT registered when NODE_ENV === 'production'. The route
+ *   previously relied on a client-side check (import.meta.env.DEV) to hide
+ *   the button in the frontend build, which is not an access control — the
+ *   endpoint itself remained reachable in production by any authenticated
+ *   user of any tier, and wrote credential rows with no audit record.
+ *
+ *   Two layers now apply:
+ *     1. Server-side registration guard — in production the route does not
+ *        exist at all and returns 404.
+ *     2. Even in non-production it requires Tier 4 (CLINICAL_BACKEND) and is
+ *        wrapped in createAuditMiddleware, so every seed write is attributed
+ *        and logged like any other mutation.
+ *
+ * Do not remove the NODE_ENV guard to "make testing easier" in a deployed
+ * environment. If seeded data is needed against a deployed database, run the
+ * migration/seed script out-of-band rather than exposing an HTTP endpoint.
  *
  * If the table does not exist (relation "credentials" does not exist),
  * run the pending migration first:
  *
  *   npx ts-node src/config/run-migrations.ts
- *
- * Then verify the table:
- *
- *   SELECT column_name, data_type
- *   FROM information_schema.columns
- *   WHERE table_name = 'credentials'
- *   ORDER BY ordinal_position;
  */
-router.post(
-  '/seed',
-  authMiddleware,
-  createTenantMiddleware(pool),
-  asyncHandler(async (req: Request, res: Response) => {
-    const client = req.dbClient!;
+if (process.env.NODE_ENV !== 'production') {
+  router.post(
+    '/seed',
+    authMiddleware,
+    createTenantMiddleware(pool),
+    createAuditMiddleware(pool),
+    requireMinTier(TIER.CLINICAL_BACKEND),
+    asyncHandler(async (req: Request, res: Response) => {
+      const client = req.dbClient!;
 
-    console.log('[SEED] Inserting mock credential for tenant:', req.tenantId);
+      console.log('[SEED] Inserting mock credential for tenant:', req.tenantId);
 
-    const { rows } = await client.query(
-      `INSERT INTO credentials (tenant_id, provider_name, license_number, expiration_date)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT DO NOTHING
-       RETURNING id, provider_name, license_number, expiration_date`,
-      [req.tenantId, 'Test Provider RN', 'CRS-77492', '2028-01-01']
-    );
+      const { rows } = await client.query(
+        `INSERT INTO credentials (tenant_id, provider_name, license_number, expiration_date)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT DO NOTHING
+         RETURNING id, provider_name, license_number, expiration_date`,
+        [req.tenantId, 'Test Provider RN', 'CRS-77492', '2028-01-01']
+      );
 
-    if (rows.length === 0) {
-      res.json({ message: 'Mock data already exists — skipped (idempotent)' });
-      return;
-    }
+      if (rows.length === 0) {
+        res.json({ message: 'Mock data already exists — skipped (idempotent)' });
+        return;
+      }
 
-    res.status(201).json({ message: 'Mock data injected', record: rows[0] });
-  })
-);
+      res.status(201).json({ message: 'Mock data injected', record: rows[0] });
+    })
+  );
+} else {
+  console.warn('[SECURITY] Seed route not registered — NODE_ENV is production.');
+}
+
 export default router;
 
