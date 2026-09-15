@@ -8,6 +8,7 @@ const MIGRATION_FILES = [
   'init-credentials-table.sql',
   'init-last-alerted-column.sql',
   'init-rename-provider-columns.sql',
+  'init-ceus-and-issuers.sql',
 ];
 
 /**
