@@ -43,8 +43,8 @@ fun AppNavHost(authViewModel: AuthViewModel) {
         }
         composable(Routes.DASHBOARD) {
             DashboardScreen(
-                isAuthenticated = uiState.isAuthenticated,
                 onLogout = authViewModel::onLogoutClick,
+                onSessionExpired = authViewModel::onSessionExpired,
             )
         }
     }

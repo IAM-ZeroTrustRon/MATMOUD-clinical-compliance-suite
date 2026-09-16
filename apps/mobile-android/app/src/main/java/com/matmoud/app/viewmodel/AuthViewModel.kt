@@ -59,4 +59,13 @@ class AuthViewModel @Inject constructor(
             _uiState.update { it.copy(isAuthenticated = false, errorMessage = null) }
         }
     }
+
+    /**
+     * Local-only session end (e.g. the refresh token expired while fetching
+     * data). Flips the UI to the login screen without opening the Auth0
+     * logout flow — there is no server-side session to end.
+     */
+    fun onSessionExpired() {
+        _uiState.update { it.copy(isAuthenticated = false, errorMessage = null) }
+    }
 }

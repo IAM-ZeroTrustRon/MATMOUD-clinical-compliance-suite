@@ -15,14 +15,31 @@ Needs JDK 17 and the Android SDK (platform 35, build-tools 35.x), plus a
 `local.properties` with a valid `sdk.dir`. `./gradlew test` needs the SDK too —
 the tests are plain JVM tests, but AGP still configures the Android project.
 
+Windows gotcha: backslashes in `sdk.dir` are Java-properties escapes. A single
+`\` parses into a control character and AGP dies at task-graph time with
+"The filename, directory name, or volume label syntax is incorrect". Use
+double backslashes or forward slashes:
+
+```properties
+sdk.dir=C\:\\tools\\android-sdk          # doubled backslash
+# or simply:  sdk.dir=C:/tools/android-sdk
+```
+
 ```bash
 cd apps/mobile-android
-./gradlew test           # 13 JVM tests: JWT decode + MFA amr matrix
+./gradlew test           # 12 JVM tests: JWT decode + MFA amr matrix
 ./gradlew assembleDebug  # app/build/outputs/apk/debug/app-debug.apk
 ```
 
 Toolchain: Gradle 8.7 (wrapper checksum-pinned), AGP 8.5.2, Kotlin 1.9.24,
-compileSdk 35 (required by Auth0.Android 3.x), minSdk 26, targetSdk 34.
+compileSdk 35 (required by Auth0.Android 3.x), minSdk 26, targetSdk 34. AGP
+8.5.2 is officially tested only through compileSdk 34, so the advisory warning
+is silenced with `android.suppressUnsupportedCompileSdk=35` in gradle.properties.
+
+**Verified 2026-09-16 (Windows):** `testDebugUnitTest` = 12/12 pass; `assembleDebug`
+produces app-debug.apk. The merged debug manifest contains the Auth0
+`RedirectActivity` intent filter (`{auth0Scheme}://{auth0Domain}/android/com.matmoud.app/callback`)
+and the debug-only `networkSecurityConfig`.
 
 ## Configuration
 
@@ -99,22 +116,23 @@ apps/mobile-android/
     │   ├── MatMoudApplication.kt   @HiltAndroidApp
     │   ├── MainActivity.kt         single activity, Compose host
     │   ├── auth/                   Auth0Config, Auth0Client, JWTDecoder, TokenPayload, Auth0Exception
-    │   ├── data/api/               MobileAPIClient (Bearer injection)
+    │   ├── data/api/               MobileAPIClient (raw OkHttp), CredentialsApi + Credential (Retrofit)
     │   ├── di/                     Hilt NetworkModule
     │   ├── ui/                     theme, navigation, screens
-    │   └── viewmodel/              AuthViewModel (isAuthenticated / isLoading / errorMessage)
+    │   └── viewmodel/              AuthViewModel, CredentialsViewModel (session / credentials state)
     ├── debug/                      debug-only cleartext network security config
     └── test/                       JVM tests (JWT + MFA matrix)
 ```
 
-## State — 2026-09-15
+## State — validated 2026-09-16
 
-Nothing here has been compiled or run. There is no JDK, Gradle or Android SDK on
-the Windows machine this was written on, and `local.properties` points `sdk.dir`
-at a path that does not exist. First run in Android Studio will need a Gradle
-sync, and compile errors are likely on first pass.
+The module now **builds and tests clean on Windows**: `./gradlew test` runs the
+12 JVM tests (all pass) and `./gradlew assembleDebug` produces the debug APK.
+The only pre-existing blocker was environmental, not code: `local.properties`
+had single backslashes, which Java properties parse into control characters
+(section "Build & test" above documents the fix).
 
-Resolved this session (was "Known Issues #1–5"):
+Resolved (was "Known Issues #1–5", all baked into this archive):
 
 1. Hand-built PKCE/state/nonce/token-exchange replaced by the Auth0 SDK.
    `PKCEGenerator`, `TokenSet`, `ISecureTokenStorage`, `KeystoreTokenStorage` and
@@ -130,14 +148,31 @@ Also fixed: missing Gradle wrapper (added 8.7, checksum-verified), AGP 8.3.2 →
 storage, and a test that called `isUrlSafe` as if it were a String extension —
 either would have failed the build before a single test ran.
 
+Added this session — Phase 3b starter:
+
+- **CredentialsScreen (live)**. `CredentialsApi` (Retrofit) + `Credential` model
+  against the existing `GET /credentials`; `CredentialsViewModel` fetches with a
+  renewed access token and renders the list on the Dashboard route. PHI masking
+  stays server-side (Minimum Necessary): a Tier 3 user sees the API's
+  `[RESTRICTED]` marker, and the client does not render `ssn`/`dob` at all.
+  A failed token refresh flips the app back to the login screen via
+  `AuthViewModel.onSessionExpired`.
+- Retrofit 2.11.0 + converter-gson added (shares the existing OkHttp client).
+
 Open:
 
-- Build and test have never run. Do that first.
-- Phase 4 endpoints: the API exposes `/credentials`, `/alerts`, `/audit-logs`.
-  There is no CEU route yet — the `ceus` table lands in the
-  `feat/ceu-tracking-migration` branch, the routes are unwritten.
-- Camera work should use ML Kit **text recognition** for licence scanning.
-  An earlier dependency list had ML Kit *face detection*, which would collect
-  biometric data nobody asked for.
-- Phase 1 of the root `TODO.md` (seed, credentials, audit-log endpoints) is still
-  unverified; wiring the app to a live API before that mixes up the failures.
+- **CEU track deferred.** The API exposes `/credentials`, `/alerts`, `/audit-logs`
+  only — there is no CEU route and no `ceus` table yet (the schema lands on the
+  `feat/ceu-tracking-migration` branch; the routes are unwritten). `CEUDetailScreen`
+  waits for that backend work.
+- Camera/ID capture: use ML Kit **text recognition** for licence scanning when
+  this is picked up. An earlier dependency list had ML Kit *face detection*,
+  which would collect biometric data nobody asked for.
+- `MobileAPIClient` (raw OkHttp) is currently unused by the new credentials flow;
+  it stays as the vehicle for the document/presigned-URL endpoints (Phase 4).
+- The Auth0 dashboard still needs the real tenant values: callback
+  `{auth0Scheme}://{auth0Domain}/android/com.matmoud.app/callback`, an MFA
+  Post-Login Action that writes `${auth0Namespace}/amr`, and `local.properties`
+  with real `auth0ClientId`/`auth0Domain`/`auth0Audience`/`auth0Namespace`.
+- No instrumentation tests yet (they need an emulator); the E2E
+  login → MFA → dashboard → upload flow is the next milestone.

@@ -6,6 +6,7 @@ import com.auth0.android.authentication.storage.SecureCredentialsManager
 import com.auth0.android.authentication.storage.SharedPreferencesStorage
 import com.matmoud.app.auth.Auth0Client
 import com.matmoud.app.auth.Auth0Config
+import com.matmoud.app.data.api.CredentialsApi
 import com.matmoud.app.data.api.MobileAPIClient
 import dagger.Module
 import dagger.Provides
@@ -13,6 +14,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -64,4 +67,21 @@ object NetworkModule {
         config: Auth0Config,
         okHttpClient: OkHttpClient,
     ): MobileAPIClient = MobileAPIClient(okHttpClient, config.apiBaseUrl)
+
+    /** Retrofit (typed endpoints) shares the same OkHttp instance as MobileAPIClient. */
+    @Provides
+    @Singleton
+    fun provideRetrofit(
+        config: Auth0Config,
+        okHttpClient: OkHttpClient,
+    ): Retrofit = Retrofit.Builder()
+        .baseUrl(config.apiBaseUrl.trimEnd('/') + "/")
+        .client(okHttpClient)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideCredentialsApi(retrofit: Retrofit): CredentialsApi =
+        retrofit.create(CredentialsApi::class.java)
 }
