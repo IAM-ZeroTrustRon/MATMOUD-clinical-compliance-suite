@@ -4,6 +4,8 @@ A HIPAA-compliant, multi-tenant credential and compliance management platform fo
 
 ---
 
+**Publication status:** Public source / beta reference architecture. See [security debt](docs/SECURITY_DEBT.md) before considering real-data use.
+
 ## Beta Scope
 
 This repository contains the **pilot-ready beta** — a single, focused core flow:
@@ -241,7 +243,7 @@ This repo ships with a custom VS Code Copilot agent (`Clinical Compliance Beta B
 
 ## Contributing
 
-This is a private beta. All contributors must:
+This source repository is public; the application remains a beta reference implementation. Public visibility does not establish production readiness or regulatory compliance. All contributors must:
 
 1. Complete security onboarding before committing any code.
 2. Never commit `.env` or any file containing credentials, keys, or PHI.
