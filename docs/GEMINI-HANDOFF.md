@@ -2,6 +2,14 @@
 
 Updated: October 20, 2026. Owner: Ron Richardson (`IAM-ZeroTrustRon`).
 
+Follow-up execution evidence: [October 20 validation and security review](EXECUTION-STATUS-2026-10-20.md).
+For a ready-to-paste reply to Gemini's latest acknowledgement, use
+[the next-session handoff](GEMINI-NEXT-SESSION.md).
+That review found CEU tables already applied in the local database despite the
+source branches remaining separate, plus a configured superuser connection that
+bypasses RLS. Use that report for live-database findings; source-branch status
+below does not imply database deployment state.
+
 ## Start here
 
 This is a continuation brief assembled from the **local application repository, recorded build artifacts, and this project's chat history**. GitHub alone does not capture the full history. Read the status labels carefully: prototype behavior, agreed designs, implemented code, and tested behavior are different things.

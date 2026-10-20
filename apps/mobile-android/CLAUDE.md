@@ -5,6 +5,14 @@ Native Android client for the MAT/MOUD Clinical Compliance Suite. Phase 2 + 3a
 camera/document workflows remain pending. See the consolidated
 [Gemini handoff](../../docs/GEMINI-HANDOFF.md) for the October 20, 2026 project
 snapshot, including chat-only prototype history and separate CEU branch work.
+See [the October 20 execution report](../../docs/EXECUTION-STATUS-2026-10-20.md)
+for follow-up validation and API/database findings. Local CEU tables already
+exist, although the source migration remains on its separate branch.
+
+**Reverified October 20, 2026:** `test` passed with 12 JVM tests in each of the
+debug/release variants; `assembleDebug` successfully packaged the debug APK.
+The execution report records the artifact hash and remaining security findings.
+No device login/upload E2E validation was performed.
 
 This module is its own Gradle root. Open `apps/mobile-android` in Android
 Studio, **not** the monorepo root (the rest of the repo is a Node workspace).

@@ -6,6 +6,8 @@ Read [the Gemini project handoff](docs/GEMINI-HANDOFF.md) for the consolidated
 architecture, Android progress, historical test evidence, separate CEU branch,
 chat-only prototype work, and remaining integration tasks. Updated October 20,
 2026. For Android setup, see [the module guide](apps/mobile-android/CLAUDE.md).
+See [the October 20 execution report](docs/EXECUTION-STATUS-2026-10-20.md) for
+fresh validation results and database/API review findings.
 Statements below about readiness describe project intent and earlier milestones;
 use the handoff and security debt log for current limitations.
 

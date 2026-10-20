@@ -3,6 +3,8 @@
 > Historical checklist: unchecked entries below have not been reconciled with
 > later work. See [GEMINI-HANDOFF.md](docs/GEMINI-HANDOFF.md) for the October 20,
 > 2026 status, recorded Android validation, and prioritized remaining work.
+> The [October 20 execution report](docs/EXECUTION-STATUS-2026-10-20.md) records
+> current API tests, database isolation probes, and CEU integration blockers.
 
 ## Phase 1: Verify Core API Functionality
 
