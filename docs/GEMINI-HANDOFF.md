@@ -50,13 +50,13 @@ At inspection, the application checkout is on `feat/mobile-oauth-simplification`
 
 | Commit | Work |
 | --- | --- |
-| `059d972` | Phase 3b credentials dashboard consuming `GET /credentials` |
-| `f9876a4` | Android Phase 2+3a foundation integrated into the monorepo |
-| `23ceecc` | Nested case-study repository excluded from source control; local `main` base |
-| `6c2d3e5` | Security remediation commit for MOUD-01/02/03/04/05/07/14 |
-| `06ffe51` | Credential schema, PHI masking, and document endpoints |
+| `392f28a` | Phase 3b credentials dashboard consuming `GET /credentials` |
+| `e80a496` | Android Phase 2+3a foundation integrated into the monorepo |
+| `3b838ca` | Nested case-study repository excluded from source control; local `main` base |
+| `771860f` | Security remediation commit for MOUD-01/02/03/04/05/07/14 |
+| `e3e3000` | Credential schema, PHI masking, and document endpoints |
 
-`feat/ceu-tracking-migration` is a separate local/remote branch at `725a1ee`. Its CEU schema is **not integrated into the current Android branch or local main**. `feat/mobile-android-foundation` remains at `23ceecc`; the actual Android commits are on `feat/mobile-oauth-simplification`.
+`feat/ceu-tracking-migration` is a separate local/remote branch at `9e7bc3b`. Its CEU schema is **not integrated into the current Android branch or local main**. `feat/mobile-android-foundation` remains at `3b838ca`; the actual Android commits are on `feat/mobile-oauth-simplification`.
 
 Before this documentation update, the Android feature branch was absent from the remote head listing; its two commits were local-only. On October 20, 2026, this session pushed `feat/mobile-oauth-simplification` to origin with upstream tracking, publishing those Android commits and the consolidated handoff. No main-branch merge or history rewrite was performed. Check live Git state before starting; these references are a dated snapshot.
 
@@ -171,7 +171,11 @@ Agreed direction from discussions, still requiring implementation/validation:
 6. Implement the agreed alert strategy after its policy/content decisions are resolved.
 7. Update documentation with exact commands/results and distinguish executed tests from intended checks. Keep secrets, PHI, local SDK paths, build artifacts, and unrelated portfolio drafts out of commits.
 
-Use descriptive conventional commit subjects with the repository's `[AI ...%]` attribution suffix. Stage explicit paths, preserve prior commits, and push the intended feature branch. Do not rewrite history or merge branches merely to make a status display look clean.
+Use descriptive conventional commit subjects **without AI percentage tags**, per
+Ron's October 20, 2026 instruction. See [the commit-message policy](COMMIT-MESSAGE-POLICY.md)
+for the authorized history cleanup and backup details. Stage explicit paths and
+push the intended feature branch. Do not perform further history rewrites or
+branch merges without a corresponding task requirement.
 
 ## Suggested first prompt for Gemini
 

@@ -1,8 +1,8 @@
 # Execution status — October 20, 2026
 
-Application checkout: `feat/mobile-oauth-simplification`, reviewed from `f9bbb94`.
+Application checkout: `feat/mobile-oauth-simplification`, reviewed from `eade617`.
 Scope: Android build/test verification, backend access/audit review, and review
-of CEU commit `725a1ee`. No branch integration or deployment was performed.
+of CEU commit `9e7bc3b`. No branch integration or deployment was performed.
 The parent security-audit repository was not modified.
 
 ## Validation results
@@ -112,7 +112,7 @@ introducing audit-table RLS rather than adding a policy that breaks audit writes
 
 ## CEU migration review — hold integration
 
-Reviewed `feat/ceu-tracking-migration` at `725a1ee` without checking it out or
+Reviewed `feat/ceu-tracking-migration` at `9e7bc3b` without checking it out or
 merging it. The migration creates `credential_issuers`, `credential_ceus`, and
 `credential_compliance_status(UUID)`, with TEXT tenant IDs, RLS, positive-credit
 validation, verification statuses, and restricted mutation grants.

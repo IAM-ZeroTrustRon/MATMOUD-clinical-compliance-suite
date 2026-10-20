@@ -8,7 +8,7 @@ Gradle validation and CEU review have now been completed; we are past the
 
 - Application root: `C:\MOUD-Compliance-Security-Audit\clinical-compliance-suite`.
 - Branch: `feat/mobile-oauth-simplification`. Preserve the separate CEU branch
-  `feat/ceu-tracking-migration` at `725a1ee`; do not merge it into main yet.
+  `feat/ceu-tracking-migration` at `9e7bc3b`; do not merge it into main yet.
 - Read [the consolidated handoff](GEMINI-HANDOFF.md),
   [the execution report](EXECUTION-STATUS-2026-10-20.md),
   [security debt](SECURITY_DEBT.md), and
@@ -87,8 +87,10 @@ Human review and passing tests do not establish production readiness or turn
 AI-assisted implementation into exclusively human-authored work. Describe
 implementation, review, and verification accurately.
 
-The repository currently has an attribution hook; Ron's explicit session briefing
-requested the `[AI 100%]` suffix. The proposed removal of all suffixes has not
-been implemented as a repository-policy change. Preserve existing history and
-do not silently disable the hook or relabel prior work. Commit-message formatting
-is separate from factual contribution and review records.
+Ron subsequently instructed that **all AI percentage tags be removed from commit
+messages across his GitHub repositories**. That instruction supersedes the earlier
+suffix convention. The account-wide branch-history cleanup is documented in
+[the commit-message policy](COMMIT-MESSAGE-POLICY.md). The tagging hooks were
+disabled and their tracker extension was backed up and uninstalled. Use normal
+conventional commit subjects without percentage tags going forward. Accurate
+implementation and review descriptions remain separate from commit formatting.
