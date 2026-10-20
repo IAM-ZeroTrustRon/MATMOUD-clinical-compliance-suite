@@ -1,5 +1,14 @@
 # MAT/MOUD Clinical Compliance Suite
 
+## Current development handoff
+
+Read [the Gemini project handoff](docs/GEMINI-HANDOFF.md) for the consolidated
+architecture, Android progress, historical test evidence, separate CEU branch,
+chat-only prototype work, and remaining integration tasks. Updated October 20,
+2026. For Android setup, see [the module guide](apps/mobile-android/CLAUDE.md).
+Statements below about readiness describe project intent and earlier milestones;
+use the handoff and security debt log for current limitations.
+
 A HIPAA-compliant, multi-tenant credential and compliance management platform for MAT/MOUD clinics. Built with a security-first architecture that satisfies **HIPAA** and **42 CFR Part 2** from day one.
 
 ---

@@ -39,3 +39,22 @@ coverage/
 # this working tree (audit finding MOUD-18). Ignoring it prevents `git add -A`
 # from recording a broken submodule pointer that references a commit no remote has.
 grc-case-study-clinical-compliance/
+
+# Android / mobile (apps/mobile-android)
+# Machine-specific SDK/IDE state, build outputs, and signing material.
+# Real credentials are read from local.properties at build time (never committed).
+.gradle/
+.idea/
+*.iml
+local.properties
+captures/
+.cxx/
+*.jks
+*.keystore
+*.apk
+*.aab
+*.aar
+apps/mobile-android/build/
+
+# Local portfolio drafts; maintained separately from application source.
+Claude outputs/

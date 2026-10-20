@@ -1,7 +1,10 @@
 # mobile-android — MAT/MOUD compliance companion
 
 Native Android client for the MAT/MOUD Clinical Compliance Suite. Phase 2 + 3a
-(auth foundation) only; credential and CEU screens are Phase 4.
+(auth foundation) and a Phase 3b credentials dashboard are implemented. CEU and
+camera/document workflows remain pending. See the consolidated
+[Gemini handoff](../../docs/GEMINI-HANDOFF.md) for the October 20, 2026 project
+snapshot, including chat-only prototype history and separate CEU branch work.
 
 This module is its own Gradle root. Open `apps/mobile-android` in Android
 Studio, **not** the monorepo root (the rest of the repo is a Node workspace).

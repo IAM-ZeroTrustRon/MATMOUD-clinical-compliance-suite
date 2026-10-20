@@ -1,5 +1,9 @@
 # MAT/MOUD Clinical Compliance Suite — Verification Progress
 
+> Historical checklist: unchecked entries below have not been reconciled with
+> later work. See [GEMINI-HANDOFF.md](docs/GEMINI-HANDOFF.md) for the October 20,
+> 2026 status, recorded Android validation, and prioritized remaining work.
+
 ## Phase 1: Verify Core API Functionality
 
 ### ✅ 1. Environment & Configuration
