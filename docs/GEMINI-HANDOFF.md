@@ -50,7 +50,7 @@ At inspection, the application checkout is on `feat/mobile-oauth-simplification`
 
 `feat/ceu-tracking-migration` is a separate local/remote branch at `725a1ee`. Its CEU schema is **not integrated into the current Android branch or local main**. `feat/mobile-android-foundation` remains at `23ceecc`; the actual Android commits are on `feat/mobile-oauth-simplification`.
 
-Before this documentation update, the Android feature branch was absent from the remote head listing; its two commits were local-only. Check live Git state before starting: branch references and this paragraph are a dated snapshot. This documentation session is intended to publish the current feature branch without rewriting history or merging main.
+Before this documentation update, the Android feature branch was absent from the remote head listing; its two commits were local-only. On October 20, 2026, this session pushed `feat/mobile-oauth-simplification` to origin with upstream tracking, publishing those Android commits and the consolidated handoff. No main-branch merge or history rewrite was performed. Check live Git state before starting; these references are a dated snapshot.
 
 The pre-existing `.gitignore` changes protect Android machine state, signing files, and generated artifacts. A local `Claude outputs/` directory contains portfolio drafts (`audit-heatmap.html`, `audit-methodology.mmd`, `linkedin-projects.md`); these are distinct from application documentation and should not be swept into a commit without review.
 
