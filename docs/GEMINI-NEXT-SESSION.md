@@ -1,5 +1,12 @@
 # Reply to Gemini — verified execution handoff
 
+**Superseding update, October 29:** the backend patches proposed below are now
+implemented and regression-tested in [Option 2 hardening](HARDENING-2026-10-29.md).
+Lists use `has_document`, read-audit failures return 500, and upload persistence
+commits before success. Review the updated control register/evidence before
+repeating old fixes. Runtime privilege, mutation-audit, CEU, and device/cloud
+assurance gaps remain open.
+
 Gemini, resume from the following verified October 20, 2026 results. Local
 Gradle validation and CEU review have now been completed; we are past the
 "ready whenever you give the signal" stage.

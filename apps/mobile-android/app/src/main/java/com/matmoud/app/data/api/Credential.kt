@@ -18,7 +18,7 @@ data class Credential(
     @SerializedName("ssn") val ssn: String? = null,
     @SerializedName("license_number") val licenseNumber: String? = null,
     @SerializedName("expiration_date") val expirationDate: String? = null,
-    @SerializedName("document_key") val documentKey: String? = null,
+    @SerializedName("has_document") val hasDocument: Boolean = false,
     @SerializedName("created_at") val createdAt: String? = null,
 ) {
     /** True when the server already replaced a PHI field with the redaction marker. */

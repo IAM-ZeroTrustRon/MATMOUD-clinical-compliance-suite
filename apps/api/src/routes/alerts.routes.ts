@@ -4,7 +4,7 @@ import { createTenantMiddleware } from '../middleware/tenant.middleware';
 import { createAuditMiddleware, auditPhiRead } from '../middleware/audit.middleware';
 import { requireRole, ROLES } from '../middleware/rbac';
 import { getExpiringCredentials, markAlertSent } from '../services/expiration.service';
-import { sendExpirationAlert, validateNoPhiInTemplateData } from '../services/email.service';
+import { sendExpirationAlert } from '../services/email.service';
 import pool from '../config/db';
 
 const router = Router();
@@ -44,16 +44,6 @@ router.post(
       // Fetch expiring credentials (RLS-scoped via req.dbClient)
       const expiringCreds = await getExpiringCredentials(client, days);
 
-      // Validate that no PHI ends up in email templates
-      const templateData = expiringCreds.map((cred) => ({
-        credentialId: cred.id,
-        expirationDate: cred.expiration_date,
-      }));
-
-      for (const data of templateData) {
-        validateNoPhiInTemplateData(data);
-      }
-
       // Send alerts
       const sendResults: Array<{ credentialId: string; success: boolean; error?: string }> = [];
 
@@ -72,15 +62,14 @@ router.post(
           await markAlertSent(client, cred.id);
 
           // Log each alert send as a PHI read (since we're acting on credential data)
-          await auditPhiRead(pool, req, 'alert_sent', cred.id).catch((err: Error) => {
-            console.error('[HIPAA-AUDIT] Failed to log alert send:', err.message);
+          await auditPhiRead(pool, req, 'alert_sent', cred.id).catch(() => {
+            console.error('[HIPAA-AUDIT] Failed to log alert send');
           });
 
           sendResults.push({ credentialId: cred.id, success: true });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : 'unknown_error';
-          console.error('[EMAIL] Failed to send alert for credential', cred.id, ':', message);
-          sendResults.push({ credentialId: cred.id, success: false, error: message });
+        } catch {
+          console.error('[EMAIL] Alert delivery failed');
+          sendResults.push({ credentialId: cred.id, success: false, error: 'alert_send_failed' });
         }
       }
 

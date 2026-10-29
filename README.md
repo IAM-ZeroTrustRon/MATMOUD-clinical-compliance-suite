@@ -2,6 +2,12 @@
 
 ## Control assurance evidence
 
+[October 29 backend hardening](docs/HARDENING-2026-10-29.md) adds tenant-scoped
+upload persistence, a `has_document` list contract, fail-closed read audits,
+safe error/mail boundaries, and regression tests. Current results are 71 default
+API tests plus seven separately executed real-PostgreSQL tests, with 14 JVM
+tests per Android build variant. The earlier 35-test run is superseded.
+
 [Compliance controls: description, test, and evidence](docs/CONTROL-EVIDENCE.md)
 provides one paragraph per control, with implementation references, the test or
 acceptance criterion, its demonstrated scope, and known gaps. The

@@ -3,7 +3,7 @@ import multer from 'multer';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { createTenantMiddleware } from '../middleware/tenant.middleware';
 import { createAuditMiddleware, auditPhiRead } from '../middleware/audit.middleware';
-import { requireRole, requireMinTier, maskPhiFields, ROLES, TIER } from '../middleware/rbac';
+import { requireMinTier, maskPhiFields, TIER } from '../middleware/rbac';
 import { s3, PutObjectCommand, getSignedDocumentUrl, SIGNED_URL_TTL_SECONDS } from '../config/s3';
 import { validateUpload, ALLOWED_TYPES_FOR_DISPLAY, MAX_FILE_SIZE_BYTES } from '../utils/validator';
 import pool from '../config/db';
@@ -60,7 +60,8 @@ router.get(
     try {
       const client = req.dbClient!;
       const { rows } = await client.query(
-        `SELECT id, provider_name, dob, ssn, license_number, expiration_date, document_key, created_at
+        `SELECT id, provider_name, dob, ssn, license_number, expiration_date,
+                (document_key IS NOT NULL AND document_key <> '') AS has_document, created_at
          FROM credentials
          WHERE tenant_id = current_setting('app.current_tenant_id', true)
          ORDER BY expiration_date ASC NULLS LAST`
@@ -68,16 +69,25 @@ router.get(
 
       // Log PHI read access per HIPAA Minimum Necessary standard
       for (const row of rows) {
-        await auditPhiRead(pool, req, 'credential', row.id).catch((err: Error) => {
-          console.error('[HIPAA-AUDIT] Failed to log PHI read:', err.message);
-        });
+        await auditPhiRead(pool, req, 'credential', row.id);
       }
 
       // Apply PHI masking based on user's tier
       const phiFields: string[] = ['provider_name', 'ssn', 'dob', 'license_number'];
-      const safe = rows.map((row: Record<string, unknown>) =>
-        maskPhiFields(req, row, phiFields)
-      );
+      const safe = rows.map((row: Record<string, unknown>) => {
+        // PHI — explicit response allowlist; storage metadata never leaves here.
+        const publicRow: Record<string, unknown> = {
+          id: row.id,
+          provider_name: row.provider_name,
+          dob: row.dob,
+          ssn: row.ssn,
+          license_number: row.license_number,
+          expiration_date: row.expiration_date,
+          has_document: row.has_document === true,
+          created_at: row.created_at,
+        };
+        return maskPhiFields(req, publicRow, phiFields);
+      });
 
       res.json(safe);
     } catch (err) {
@@ -128,6 +138,19 @@ router.post(
         return;
       }
 
+      const client = req.dbClient!;
+      // Check ownership before any S3 side effect; lock the row until commit.
+      const ownership = await client.query(
+        `SELECT id FROM credentials
+         WHERE id = $1 AND tenant_id = current_setting('app.current_tenant_id', true)
+         FOR UPDATE`,
+        [req.params.id]
+      );
+      if (ownership.rows.length === 0) {
+        res.status(404).json({ error: 'credential_not_found' });
+        return;
+      }
+
       // MOUD-05: the S3 key is generated server-side and contains no
       // user-supplied input. The uploaded filename previously flowed straight
       // into the key, which put identifying information ("Jane-Doe-SSN.pdf")
@@ -153,15 +176,22 @@ router.post(
       const result = await s3.send(cmd);
 
       // Persist the document key on the credential record
-      await pool.query(
-        `UPDATE credentials SET document_key = $1 WHERE id = $2 AND tenant_id = current_setting('app.current_tenant_id', true)`,
+      const persisted = await client.query(
+        `UPDATE credentials SET document_key = $1, updated_at = NOW()
+         WHERE id = $2 AND tenant_id = current_setting('app.current_tenant_id', true)
+         RETURNING id`,
         [key, req.params.id]
       );
+      if (persisted.rows.length !== 1) {
+        throw new Error('document_persistence_failed');
+      }
+      // Do not return success before PostgreSQL has committed the document key.
+      await req.commitTenantTransaction!();
 
       res.status(201).json({
         status: 'uploaded',
         etag: result.ETag,
-        key,
+        has_document: true,
       });
     } catch (err) {
       next(err);
@@ -221,9 +251,9 @@ router.post(
  *   sensitive read in this application and must be attributable.
  *
  *   The audit write is intentionally AWAITED and fails closed: if the audit
- *   event cannot be written, no URL is minted and the request returns 503.
- *   This differs deliberately from the fire-and-forget logging on the list
- *   route. Releasing a PHI document without a corresponding audit record is
+ *   event cannot be written, no URL is minted and the request returns 500.
+ *   Credential lists also await their read audits. Releasing a PHI document
+ *   without a corresponding audit record is
  *   precisely the outcome the audit trail exists to prevent, and in a product
  *   whose compliance value rests on that trail, a failed audit is a failed
  *   request — not a warning on stderr.
@@ -255,16 +285,7 @@ router.get(
     }
 
     // Audit BEFORE the URL exists — never mint a credential we failed to log.
-    try {
-      await auditPhiRead(pool, req, 'credential_document', req.params.id);
-    } catch (err) {
-      console.error(
-        '[HIPAA-AUDIT] Refusing to issue document URL — audit write failed:',
-        err instanceof Error ? err.message : String(err)
-      );
-      res.status(503).json({ error: 'audit_unavailable' });
-      return;
-    }
+    await auditPhiRead(pool, req, 'credential_document', req.params.id);
 
     const url = await getSignedDocumentUrl(rows[0].document_key);
 

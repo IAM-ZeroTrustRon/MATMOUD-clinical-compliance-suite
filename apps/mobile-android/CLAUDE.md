@@ -1,5 +1,12 @@
 # mobile-android — MAT/MOUD compliance companion
 
+**October 29 contract update:** credential JSON uses `has_document: boolean`;
+`document_key`/`documentKey` are no longer client-model fields. The Gson contract
+tests cover true/false presence and rejection of raw-key serialization. See
+[the hardening report](../../docs/HARDENING-2026-10-29.md) for server changes.
+Current validation: 14 JVM tests per debug/release variant passed and the debug
+APK built successfully; the dated 12-test results below remain historical.
+
 Native Android client for the MAT/MOUD Clinical Compliance Suite. Phase 2 + 3a
 (auth foundation) and a Phase 3b credentials dashboard are implemented. CEU and
 camera/document workflows remain pending. See the consolidated

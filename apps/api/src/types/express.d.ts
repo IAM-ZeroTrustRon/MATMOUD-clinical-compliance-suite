@@ -24,6 +24,9 @@ declare global {
        * to ensure all queries are scoped to the correct tenant.
        */
       dbClient?: PoolClient;
+
+      /** Commit/release the tenant transaction before a write response succeeds. */
+      commitTenantTransaction?: () => Promise<void>;
     }
   }
 }

@@ -273,7 +273,7 @@ function App() {
                         <td>
                           <DocumentCell
                             credentialId={cred.id}
-                            hasDocument={cred.document_key !== null}
+                            hasDocument={cred.has_document}
                             apiBase={API_BASE}
                             getAuthHeaders={getAuthHeaders}
                             onUploaded={handleFetchCredentials}

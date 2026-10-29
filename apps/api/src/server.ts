@@ -1,13 +1,11 @@
 import express from 'express';
 import 'dotenv/config';
-import { authMiddleware } from './middleware/auth.middleware';
-import { createTenantMiddleware } from './middleware/tenant.middleware';
-import { createAuditMiddleware } from './middleware/audit.middleware';
 import credentialsRouter from './routes/credentials.routes';
 import alertsRouter from './routes/alerts.routes';
 import auditRouter from './routes/audit.routes';
 import { startAlertScheduler } from './services/scheduler';
 import pool, { testConnection } from './config/db';
+import { apiErrorHandler, noStore } from './middleware/http.middleware';
 
 // ---------------------------------------------------------------------------
 // Global rejection handlers — catch promise rejections and uncaught
@@ -21,15 +19,12 @@ import pool, { testConnection } from './config/db';
 //     Once this fires, the process is in an unknown state, so we log,
 //     attempt graceful shutdown, then exit.
 // ---------------------------------------------------------------------------
-process.on('unhandledRejection', (reason: unknown) => {
-  console.error('[FATAL] UNHANDLED REJECTION:', reason);
+process.on('unhandledRejection', () => {
+  console.error('[FATAL] UNHANDLED REJECTION');
 });
 
-process.on('uncaughtException', (err: Error) => {
-  console.error('[FATAL] UNCAUGHT EXCEPTION:', err);
-  if (err?.stack) {
-    console.error('[FATAL] Stack trace:', err.stack);
-  }
+process.on('uncaughtException', () => {
+  console.error('[FATAL] UNCAUGHT EXCEPTION');
   // Give logger time to flush, then exit uncleanly
   setTimeout(() => process.exit(1), 1000);
 });
@@ -41,6 +36,7 @@ const app = express();
 // ---------------------------------------------------------------------------
 
 // Parse JSON request bodies
+app.use(noStore);
 app.use(express.json({ limit: '1mb' }));
 
 // ---------------------------------------------------------------------------
@@ -53,19 +49,20 @@ app.use(express.json({ limit: '1mb' }));
 app.get('/health', async (_req, res) => {
   try {
     const client = await pool.connect();
-    await client.query('SELECT 1');
-    client.release();
+    try {
+      await client.query('SELECT 1');
+    } finally {
+      client.release();
+    }
     res.json({
       status: 'ok',
       postgres: 'connected',
       timestamp: new Date().toISOString(),
     });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
+  } catch {
     res.status(503).json({
       status: 'degraded',
       postgres: 'disconnected',
-      detail: message,
       timestamp: new Date().toISOString(),
     });
   }
@@ -90,28 +87,9 @@ app.use('/audit-logs', auditRouter);
 // ---------------------------------------------------------------------------
 // Global error handler — must be registered last
 //
-// In development, the full error stack is returned to help with debugging.
-// In production, only a generic message is exposed to prevent information
-// leakage (OWASP Top 10 — A05:2021 Security Misconfiguration).
+// Raw errors and stacks are never exposed, including in development.
 // ---------------------------------------------------------------------------
-app.use(
-  (
-    err: Error,
-    _req: express.Request,
-    res: express.Response,
-    _next: express.NextFunction
-  ): void => {
-    const isDev = process.env.NODE_ENV === 'development';
-    console.error('[ERROR] Unhandled error:', err);
-    if (err?.stack) {
-      console.error('[ERROR] Stack trace:', err.stack);
-    }
-    res.status(500).json({
-      error: err.message || 'internal_error',
-      ...(isDev && { stack: err.stack }),
-    });
-  }
-);
+app.use(apiErrorHandler);
 
 // ---------------------------------------------------------------------------
 // Server start
@@ -137,9 +115,8 @@ if (process.env.NODE_ENV !== 'test') {
         console.log(`[CLINICAL-COMPLIANCE] Environment: ${process.env.NODE_ENV ?? 'development'}`);
       });
     })
-    .catch((err: Error) => {
+    .catch(() => {
       console.error('[CLINICAL-COMPLIANCE] Failed to connect to PostgreSQL:');
-      console.error(err.message);
       process.exit(1);
     });
 }

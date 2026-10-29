@@ -7,6 +7,14 @@ resolution before real (non-synthetic) data enters the system.
 
 ## Runtime Isolation, Audit Delivery, and CEU Integrity
 
+**October 29 update:** [Option 2 hardening](HARDENING-2026-10-29.md) fixes upload
+connection/ownership/commit handling, removes storage keys from list/upload
+responses, makes credential reads fail closed on audit error, and sanitizes
+server/health/provider errors. Cache headers and runtime email allowlisting are
+covered by regression tests. The findings below describe the October 20 baseline;
+remaining runtime-role, mutation-audit, audit-permission, CEU, and migration issues
+are still open.
+
 **Status:** Open — confirmed October 20, 2026; no remediation applied in this review.
 
 See [the execution report](EXECUTION-STATUS-2026-10-20.md) for source references,

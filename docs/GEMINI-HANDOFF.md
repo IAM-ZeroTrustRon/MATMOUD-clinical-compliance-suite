@@ -2,6 +2,12 @@
 
 Updated: October 20, 2026. Owner: Ron Richardson (`IAM-ZeroTrustRon`).
 
+**October 29 continuation:** [Option 2 hardening](HARDENING-2026-10-29.md) now
+implements the upload persistence, boolean document contract, fail-closed read
+audit, error/mail redaction, and no-store changes. Use that report and the
+[control register](CONTROL-EVIDENCE.md) for current state; the earlier findings
+and implementation descriptions below remain a historical baseline.
+
 Follow-up execution evidence: [October 20 validation and security review](EXECUTION-STATUS-2026-10-20.md).
 For a ready-to-paste reply to Gemini's latest acknowledgement, use
 [the next-session handoff](GEMINI-NEXT-SESSION.md).
