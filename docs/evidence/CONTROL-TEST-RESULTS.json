@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-29",
+  "source_revision": "6282dc4c058b1294d4a4e5b8ca9ebea0f43c1939",
+  "runner": "Jest via local CLI",
+  "command": "npm test -- --runInBand --json --outputFile=coverage/control-evidence-results.json",
+  "test_execution_started_utc": "2026-10-29T21:34:31.915Z",
+  "api": {
+    "suites": 3,
+    "tests": 35,
+    "passed": 35,
+    "failed": 0,
+    "results": [
+      {
+        "file": "apps/api/src/config/__tests__/s3.test.ts",
+        "source_blob": "242ea4dbad72d6caaecf2a13a86ab66f9bef5009",
+        "status": "passed",
+        "passed": 5,
+        "failed": 0
+      },
+      {
+        "file": "apps/api/src/middleware/__tests__/auth.middleware.test.ts",
+        "source_blob": "dbe51a072de8c9c4f08dc2413434a676e9910ade",
+        "status": "passed",
+        "passed": 12,
+        "failed": 0
+      },
+      {
+        "file": "apps/api/src/utils/__tests__/validator.test.ts",
+        "source_blob": "ddaf55f496335524392dfcdf32a4540d242c0528",
+        "status": "passed",
+        "passed": 18,
+        "failed": 0
+      }
+    ]
+  },
+  "scope": "Synthetic fixtures only; JWT/JWKS and S3 signing are mocked. This result does not verify cloud, device, production configuration, or all API routes.",
+  "historical_android": {
+    "verification_date": "2026-10-20",
+    "distinct_tests": 12,
+    "debug_passed": 12,
+    "release_passed": 12,
+    "rerun_for_this_document": false,
+    "evidence": "docs/EXECUTION-STATUS-2026-10-20.md"
+  }
+}

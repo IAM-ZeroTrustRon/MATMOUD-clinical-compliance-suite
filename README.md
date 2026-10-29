@@ -1,5 +1,13 @@
 # MAT/MOUD Clinical Compliance Suite
 
+## Control assurance evidence
+
+[Compliance controls: description, test, and evidence](docs/CONTROL-EVIDENCE.md)
+provides one paragraph per control, with implementation references, the test or
+acceptance criterion, its demonstrated scope, and known gaps. The
+[sanitized test summary](docs/evidence/CONTROL-TEST-RESULTS.json) records the
+October 29, 2026 API regression run without application records or raw logs.
+
 ## Current development handoff
 
 Read [the Gemini project handoff](docs/GEMINI-HANDOFF.md) for the consolidated
