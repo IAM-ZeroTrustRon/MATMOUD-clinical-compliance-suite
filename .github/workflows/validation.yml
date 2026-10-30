@@ -71,6 +71,11 @@ jobs:
     name: Android JVM tests and debug APK
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    env:
+      # GitHub-hosted Ubuntu runners preinstall the Android SDK here, but do
+      # not guarantee that sdkmanager is exported on PATH.
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -80,7 +85,11 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Install the compile SDK
-        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;34.0.0"'
+        run: >-
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          --sdk_root="$ANDROID_HOME"
+          "platforms;android-35"
+          "build-tools;34.0.0"
       - name: Test both JVM variants and assemble debug APK
         working-directory: apps/mobile-android
         # The wrapper is tracked without executable mode; sh works on clean Linux checkouts.
