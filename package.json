@@ -15,6 +15,9 @@
     "apps/api",
     "apps/web"
   ],
+  "overrides": {
+    "qs": "6.16.2"
+  },
   "dependencies": {
     "node-cron": "^4.6.0"
   }

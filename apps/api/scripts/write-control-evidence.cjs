@@ -49,7 +49,8 @@ const android = ['testDebugUnitTest', 'testReleaseUnitTest'].map((variant) => {
   return { variant, ...totals };
 });
 const sourceFiles = [...allowed,
-  '.github/workflows/validation.yml', 'package.json', 'package-lock.json',
+  '.github/workflows/validation.yml', '.github/dependabot.yml',
+  'package.json', 'package-lock.json',
   'apps/api/package.json', 'apps/web/package.json',
   'apps/api/src/routes/credentials.routes.ts', 'apps/api/src/middleware/tenant.middleware.ts',
   'apps/api/src/middleware/audit.middleware.ts', 'apps/api/src/middleware/http.middleware.ts',
