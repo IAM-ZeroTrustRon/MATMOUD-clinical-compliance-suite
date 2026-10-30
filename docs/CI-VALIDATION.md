@@ -43,6 +43,8 @@ branch protection, grant approvals, merge to `main`, or certify compliance.
 Inspect the actual Actions run before describing hosted validation as passed.
 Local source hashes identify only the enumerated evidence inputs; they are not
 an independent attestation that every control or deployment was verified.
+Source hashes normalize CRLF to LF so Windows checkouts and canonical Git text
+blobs produce the same digest; APK hashes use the original binary bytes.
 
 ## Merge procedure
 

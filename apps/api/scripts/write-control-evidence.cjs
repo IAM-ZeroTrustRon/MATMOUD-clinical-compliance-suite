@@ -14,6 +14,10 @@ const allowed = new Set([
   'apps/api/test/alerts.routes.test.ts',
 ]);
 const digest = (file) => crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex');
+// Allowlisted source inputs are UTF-8 text. Hash their canonical LF bytes,
+// matching Git's stored text regardless of Windows checkout line endings.
+const sourceDigest = (file) => crypto.createHash('sha256')
+  .update(fs.readFileSync(path.join(root, file), 'utf8').replace(/\r\n/g, '\n'), 'utf8').digest('hex');
 function result(file) {
   const raw = JSON.parse(fs.readFileSync(path.join(root, 'apps/api/coverage', file), 'utf8'));
   if (!raw.success || raw.numFailedTests || raw.numFailedTestSuites) throw new Error('passing_test_evidence_required');
@@ -67,7 +71,8 @@ const summary = {
   android_results_origin: 'Relocated local Gradle build succeeded October 30; JVM test tasks reused cached 14-case results per variant. Hosted validation is recorded separately in GitHub Actions.',
   debug_apk: { bytes: fs.statSync(path.join(root, apk)).size, sha256: digest(apk) },
   scope: 'Synthetic fixtures only. HTTP unit tests double identity, DB transport, and S3; PostgreSQL tests use a disposable restricted-role DB with identity/S3 doubles. Android tests are JVM tests, not device or cloud E2E.',
-  source_sha256: Object.fromEntries(sourceFiles.sort().map((file) => [file, digest(file)])),
+  source_hash_representation: 'UTF-8 text with CRLF normalized to LF, matching canonical Git blobs; APK hash uses raw bytes.',
+  source_sha256: Object.fromEntries(sourceFiles.sort().map((file) => [file, sourceDigest(file)])),
 };
 fs.writeFileSync(path.join(root, 'docs/evidence/CONTROL-TEST-RESULTS.json'), JSON.stringify(summary, null, 2) + '\n');
 console.log('[EVIDENCE] Sanitized aggregates and source hashes written');
