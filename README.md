@@ -1,10 +1,14 @@
 # MAT/MOUD Clinical Compliance Suite
 
+[Portfolio index](https://github.com/IAM-ZeroTrustRon/GRC-IAM-Portfolio) · **Repository role:** Application source; synthetic-data prototype.
+
+[Security assessment](https://github.com/IAM-ZeroTrustRon/MOUD-compliance-SecAudit) · [Architecture case study](https://github.com/IAM-ZeroTrustRon/Clinical_Compliance_Hub)
+
 ## Control assurance evidence
 
 [Automated validation](docs/CI-VALIDATION.md) defines API/web, PostgreSQL, and
-Android checks on pushes and pull requests. Required-check enforcement is a
-separate repository setting; consult the actual Actions run for its result.
+Android checks on pushes and pull requests. `main` requires these three checks with admin enforcement and zero required
+approvals. Consult the current protection settings and Actions run for operating evidence.
 
 See [independent workspace layout](docs/WORKSPACE-LAYOUT.md) for the application,
 audit, and case-study repository locations and recovery notes.
@@ -19,7 +23,7 @@ tests per Android build variant. The earlier 35-test run is superseded.
 provides one paragraph per control, with implementation references, the test or
 acceptance criterion, its demonstrated scope, and known gaps. The
 [sanitized test summary](docs/evidence/CONTROL-TEST-RESULTS.json) records the
-October 29, 2026 API regression run without application records or raw logs.
+dated API regression runs without application records or raw logs.
 
 ## Current development handoff
 
@@ -28,7 +32,7 @@ architecture, Android progress, historical test evidence, separate CEU branch,
 chat-only prototype work, and remaining integration tasks. Updated October 20,
 2026. For Android setup, see [the module guide](apps/mobile-android/CLAUDE.md).
 See [the October 20 execution report](docs/EXECUTION-STATUS-2026-10-20.md) for
-fresh validation results and database/API review findings.
+historical validation results and database/API review findings.
 Statements below about readiness describe project intent and earlier milestones;
 use the handoff and security debt log for current limitations.
 
@@ -43,7 +47,8 @@ public availability does not establish production readiness or regulatory compli
 
 ## Beta Scope
 
-This repository contains the **pilot-ready beta** — a single, focused core flow:
+This repository contains a **synthetic-data beta prototype** with a focused core flow.
+Real-data use remains gated by the open security debt and deployment validation:
 
 > **Login → Add Credential → Upload Document → Set Expiration → Receive Alert → View Compliance Status**
 
@@ -64,6 +69,8 @@ This repository contains the **pilot-ready beta** — a single, focused core flo
 ```
 clinical-compliance-suite/
 ├── apps/
+│   ├── web/                          # React web client
+│   ├── mobile-android/               # Kotlin Android companion
 │   └── api/                          # Node.js Express API
 │       ├── package.json
 │       ├── tsconfig.json
@@ -76,7 +83,7 @@ clinical-compliance-suite/
 │           │   ├── index.ts          # Barrel — middleware chain order
 │           │   ├── auth.middleware.ts     # Auth0 JWT validation + MFA enforcement
 │           │   ├── tenant.middleware.ts   # PostgreSQL RLS context (multi-tenancy)
-│           │   ├── audit.middleware.ts    # HIPAA-compliant immutable audit log
+│           │   ├── audit.middleware.ts    # Audit event writer; assurance gaps tracked
 │           │   └── rbac.ts               # Role/tier definitions + access guards
 │           ├── routes/
 │           │   ├── credentials.routes.ts  # Dashboard + document upload
@@ -88,8 +95,11 @@ clinical-compliance-suite/
 │           │   └── validator.ts           # MIME type validation
 │           └── types/
 │               └── express.d.ts      # Express Request type extensions
+├── docs/                            # Controls, evidence and security debt
+├── package-lock.json                 # Root npm workspace lockfile
 ├── .env.example
 └── .github/
+    ├── workflows/                   # Required validation checks
     ├── agents/
     │   └── clinical-compliance-beta.agent.md   # VS Code Copilot agent
     └── instructions/
@@ -112,7 +122,7 @@ auth.middleware.ts        ← 1. Validate Auth0 RS256 JWT + enforce TOTP/FIDO2 M
 tenant.middleware.ts       ← 2. Set PostgreSQL RLS: SET LOCAL app.current_tenant_id
   │
   ▼
-audit.middleware.ts        ← 3. Write immutable event to audit_events on 2xx mutations
+audit.middleware.ts        ← 3. Register audit attempt for 2xx mutations
   │
   ▼
 [requireRole / requireMinTier]   ← 4. Per-route RBAC gate
@@ -121,12 +131,12 @@ audit.middleware.ts        ← 3. Write immutable event to audit_events on 2xx m
 Route Handler
 ```
 
-Every request through a protected route traverses this chain in order. A failure at any stage short-circuits the chain and returns the appropriate HTTP error — no downstream code executes.
+Protected routes apply authentication, tenant context and authorization before handling data. Credential reads await their audit writes and fail closed on error. General mutation audit logging runs after response completion and is not atomic with the business write; see the control register for this remaining gap.
 
 ### Authentication (`auth.middleware.ts`)
 
 - Validates **RS256-signed JWTs** via Auth0's JWKS endpoint (cached, rate-limited).
-- Enforces **MFA**: rejects tokens where `amr` does not include `totp`, `fido`, or `fido2`.
+- Enforces **MFA**: accepts only the configured `mfa`, `totp`, `fido`, or `fido2` markers; missing or password-only assertions fail closed.
 - **SMS is never a valid `amr` value** — tokens authenticated via SMS are rejected with `401`.
 - Populates `req.user` with identity claims only. No PHI enters this object.
 
@@ -134,8 +144,8 @@ Every request through a protected route traverses this chain in order. A failure
 
 - Acquires a **dedicated pool connection** per request (not a shared connection).
 - Opens a transaction and calls `set_config('app.current_tenant_id', tenantId, true)` — the `true` argument scopes the value to the current transaction only, preventing bleed across connections.
-- Route handlers **must** use `req.dbClient` for all queries. PostgreSQL RLS policies will reject any query that lacks a valid tenant context.
-- Tenant ID is validated against `/^[a-zA-Z0-9_-]{1,64}$/` before use — no injection path exists.
+- Route handlers **must** use `req.dbClient` for all queries. PostgreSQL RLS limits data access under a correctly restricted runtime role. Superusers and BYPASSRLS roles bypass those policies; runtime-role remediation remains tracked.
+- Tenant ID is validated against `/^[a-zA-Z0-9_-]{1,64}$/` before use before it is used as a query parameter.
 
 ### RBAC Access Tiers (`rbac.ts`)
 
@@ -143,7 +153,7 @@ Every request through a protected route traverses this chain in order. A failure
 |---|---|---|
 | **Tier 3 — Limited Support** | `customer_support`, `implementation`, `viewer` | Masked by default |
 | **Tier 4 — Clinical / Backend** | `org_admin`, `clinic_admin`, `compliance_lead`, `operations_lead`, `backend_engineer` | Full within tenant |
-| **Tier 5 — Privileged Admin** | `db_admin`, `security_devops` | Full system — requires dual approval |
+| **Tier 5 — Privileged Admin** | `db_admin`, `security_devops` | Tenant-scoped privileged access; out-of-band dual approval remains an assurance gap |
 
 ```typescript
 // Exact-role gate
@@ -158,11 +168,11 @@ const safe = maskPhiFields(req, record, ['ssn', 'dob', 'license_number']); // PH
 
 ### Audit Logging (`audit.middleware.ts`)
 
-- Writes to `audit_events` on every successful (`2xx`) mutating request.
+- Attempts an audit INSERT after successful (`2xx`) mutating responses; delivery is not atomic with the business transaction.
 - Captures: `user_id`, `tenant_id`, `action_type`, `resource_id`, `occurred_at` (ISO 8601 UTC), `ip_address`, `http_status`.
-- The table is **INSERT-only** — the app DB role must not hold `UPDATE` or `DELETE` privileges on `audit_events`.
+- Migration grants target an **INSERT-only application role**; the configured runtime role and privileged tamper protections must be checked separately.
 - PHI READ access must be logged from route handlers using `auditPhiRead()`.
-- **Minimum retention: 6 years.** Use time-series partitioning — never `DELETE` rows.
+- **Project retention objective: 6 years.** Archive/retention effectiveness has not been demonstrated.
 
 ---
 
@@ -193,9 +203,10 @@ cp .env.example .env
 ### Install Dependencies
 
 ```bash
-cd apps/api
-npm install
-npm install -D @types/jsonwebtoken @types/jwks-rsa
+# From the repository root; use the committed workspace lockfile.
+npm ci --ignore-scripts --no-audit --no-fund
+npm run build
+npm test --workspace=apps/api -- --runInBand
 ```
 
 ### Key Runtime Dependencies
@@ -249,16 +260,16 @@ exports.onExecutePostLogin = async (event, api) => {
 
 ---
 
-## Compliance
+## Control objectives and assurance limits
 
-| Requirement | Implementation |
+| Objective | Implementation or required evidence |
 |---|---|
-| HIPAA — Encryption at Rest | AES-256 via SSE-KMS (S3 / Azure Blob) |
-| HIPAA — Encryption in Transit | TLS 1.3 minimum — no TLS 1.2 fallback |
-| HIPAA — Access Control | RBAC enforced at API layer on every endpoint |
-| HIPAA — Audit Controls | Immutable `audit_events`, 6-year retention |
-| HIPAA — MFA | TOTP (RFC 6238) or FIDO2 — SMS prohibited |
-| 42 CFR Part 2 | Architecture reviewed per Part 2 requirements |
+| Document encryption | S3 upload requests specify SSE-KMS; deployed customer-managed key policy needs separate verification |
+| Transport protection | TLS requirements are project objectives; deployed termination and service connections require evidence |
+| Access control | API role/tier gates and tenant-scoped data access; see the tested matrix and remaining gaps |
+| Auditability | Read-audit delivery gates and mutation audit attempts; immutability, retention and atomicity are separate assurance requirements |
+| Authentication | Project-approved MFA claim checks; real identity-provider flows require integration evidence |
+| Regulatory alignment | Design objectives mapped to applicable HIPAA/Part 2 concerns; no certification or production assurance is asserted |
 
 Any design decision that creates tension between HIPAA and 42 CFR Part 2 is surfaced in source code as `// COMPLIANCE CONFLICT: <description>`.
 
@@ -266,7 +277,7 @@ Any design decision that creates tension between HIPAA and 42 CFR Part 2 is surf
 
 ## VS Code Copilot Agent
 
-This repo ships with a custom VS Code Copilot agent (`Clinical Compliance Beta Builder`) in `.github/agents/`. It enforces all security rules and beta scope boundaries during AI-assisted development sessions.
+This repo ships with a custom VS Code Copilot agent (`Clinical Compliance Beta Builder`) in `.github/agents/`. It supplies security and scope guidance during development; instructions alone do not enforce or prove runtime controls.
 
 ```
 @clinical-compliance-beta implement the document upload endpoint with SSE-KMS
