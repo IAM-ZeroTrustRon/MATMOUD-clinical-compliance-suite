@@ -1,5 +1,15 @@
 # Reply to Gemini — verified execution handoff
 
+**Workspace relocation, October 29:** use `C:\Projects\clinical-compliance-suite`.
+The audit and case study now live in independent sibling repositories. See
+[the verified workspace layout](WORKSPACE-LAYOUT.md) before using older paths.
+The original directory is retained for recovery only.
+
+The latest API rerun passed 78 tests plus seven separately executed PostgreSQL
+tests; TypeScript compiled. Alert outcomes now distinguish `emailed`/`audited`
+and expose tracking failures. Read the updated hardening report for semantics
+and remaining atomicity risks. Earlier counts and paths below are historical.
+
 **Superseding update, October 29:** the backend patches proposed below are now
 implemented and regression-tested in [Option 2 hardening](HARDENING-2026-10-29.md).
 Lists use `has_document`, read-audit failures return 500, and upload persistence
@@ -13,7 +23,7 @@ Gradle validation and CEU review have now been completed; we are past the
 
 ## Repository and references
 
-- Application root: `C:\MOUD-Compliance-Security-Audit\clinical-compliance-suite`.
+- Application root: `C:\Projects\clinical-compliance-suite`.
 - Branch: `feat/mobile-oauth-simplification`. Preserve the separate CEU branch
   `feat/ceu-tracking-migration` at `9e7bc3b`; do not merge it into main yet.
 - Read [the consolidated handoff](GEMINI-HANDOFF.md),

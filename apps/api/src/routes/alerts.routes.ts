@@ -45,9 +45,14 @@ router.post(
       const expiringCreds = await getExpiringCredentials(client, days);
 
       // Send alerts
-      const sendResults: Array<{ credentialId: string; success: boolean; error?: string }> = [];
+      const sendResults: Array<{
+        credentialId: string; success: boolean; emailed: boolean; audited: boolean;
+        error?: string;
+      }> = [];
 
       for (const cred of expiringCreds) {
+        let emailed = false;
+        let audited = false;
         try {
           await sendExpirationAlert({
             to: process.env.ALERT_RECIPIENT_EMAIL || '',
@@ -57,27 +62,35 @@ router.post(
               expirationDate: cred.expiration_date,
             },
           });
+          emailed = true;
 
-          // Mark as alerted to prevent duplicate sends on the next run
-          await markAlertSent(client, cred.id);
-
-          // Log each alert send as a PHI read (since we're acting on credential data)
-          await auditPhiRead(pool, req, 'alert_sent', cred.id).catch(() => {
+          // Delivery cannot be undone. Expose audit failure without misreporting
+          // the delivered message as unsent or returning raw provider/DB errors.
+          try {
+            await auditPhiRead(pool, req, 'alert_sent', cred.id);
+            audited = true;
+          } catch {
             console.error('[HIPAA-AUDIT] Failed to log alert send');
-          });
+          }
 
-          sendResults.push({ credentialId: cred.id, success: true });
+          // Keep deduplication even if the separate audit write failed.
+          await markAlertSent(client, cred.id);
+          sendResults.push({ credentialId: cred.id, success: audited, emailed, audited,
+            ...(!audited ? { error: 'alert_audit_failed' } : {}) });
         } catch {
-          console.error('[EMAIL] Alert delivery failed');
-          sendResults.push({ credentialId: cred.id, success: false, error: 'alert_send_failed' });
+          console.error('[ALERT] Alert processing failed');
+          sendResults.push({ credentialId: cred.id, success: false, emailed, audited,
+            error: emailed ? 'alert_tracking_failed' : 'alert_send_failed' });
         }
       }
 
       res.json({
-        status: 'completed',
+        status: sendResults.some((r) => !r.success) ? 'completed_with_errors' : 'completed',
         total: expiringCreds.length,
-        sent: sendResults.filter((r) => r.success).length,
-        failed: sendResults.filter((r) => !r.success).length,
+        sent: sendResults.filter((r) => r.emailed).length,
+        failed: sendResults.filter((r) => !r.emailed).length,
+        auditFailed: sendResults.filter((r) => r.emailed && !r.audited).length,
+        trackingFailed: sendResults.filter((r) => r.error === 'alert_tracking_failed').length,
         results: sendResults,
       });
     } catch (err) {

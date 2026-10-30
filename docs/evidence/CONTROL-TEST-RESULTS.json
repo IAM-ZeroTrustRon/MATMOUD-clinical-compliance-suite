@@ -1,21 +1,15 @@
 {
   "schema_version": 2,
   "review_date": "2026-10-29",
-  "base_revision": "dc283678a6b7328397f2205faa57623ad0d7e09b",
+  "base_revision": "91006818a18c052cf9f2ab940bbd9a3b62f19ac3",
   "source_state": "Hardening changes on the base revision; tested source bytes identified by source_sha256.",
   "api": {
-    "execution_started_utc": "2026-10-29T21:51:29.882Z",
-    "tests": 78,
-    "passed": 71,
+    "execution_started_utc": "2026-10-30T02:47:21.916Z",
+    "tests": 85,
+    "passed": 78,
     "skipped": 7,
     "failed": 0,
     "suites": [
-      {
-        "file": "apps/api/test/credentials.postgres.test.ts",
-        "status": "skipped",
-        "passed": 0,
-        "skipped": 7
-      },
       {
         "file": "apps/api/test/credentials.routes.test.ts",
         "status": "passed",
@@ -23,9 +17,27 @@
         "skipped": 0
       },
       {
-        "file": "apps/api/test/email.service.test.ts",
+        "file": "apps/api/test/credentials.postgres.test.ts",
+        "status": "skipped",
+        "passed": 0,
+        "skipped": 7
+      },
+      {
+        "file": "apps/api/src/middleware/__tests__/auth.middleware.test.ts",
         "status": "passed",
-        "passed": 11,
+        "passed": 12,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/test/alerts.routes.test.ts",
+        "status": "passed",
+        "passed": 7,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/src/utils/__tests__/validator.test.ts",
+        "status": "passed",
+        "passed": 18,
         "skipped": 0
       },
       {
@@ -35,21 +47,15 @@
         "skipped": 0
       },
       {
-        "file": "apps/api/src/middleware/__tests__/auth.middleware.test.ts",
+        "file": "apps/api/test/email.service.test.ts",
         "status": "passed",
-        "passed": 12,
-        "skipped": 0
-      },
-      {
-        "file": "apps/api/src/utils/__tests__/validator.test.ts",
-        "status": "passed",
-        "passed": 18,
+        "passed": 11,
         "skipped": 0
       }
     ]
   },
   "postgres": {
-    "execution_started_utc": "2026-10-29T21:56:39.772Z",
+    "execution_started_utc": "2026-10-30T02:47:34.655Z",
     "tests": 7,
     "passed": 7,
     "skipped": 0,
@@ -85,7 +91,7 @@
   "source_sha256": {
     "apps/api/jest.config.js": "809d01b22568963f6799938ac73a55ef7d54c6657187edc9821334fd8cdf53cb",
     "apps/api/scripts/test-postgres.cjs": "b6767b672a254ceaf0a0603b8155b17da3cadd34e04554daf8929295599f52c7",
-    "apps/api/scripts/write-control-evidence.cjs": "bbe2839c0afe6ec058f4759138024c4b0996468a14b775a3b28021591baf094b",
+    "apps/api/scripts/write-control-evidence.cjs": "93ff1830cfdb65e82083bae19d8312e458e77ed675e8fb330377709dd5c120c4",
     "apps/api/src/config/__tests__/s3.test.ts": "bdb69ccab60594018f9cca52911e97865b90ab2c4e3e36d8eb547b56ef701ce8",
     "apps/api/src/config/init-audit-table.sql": "ad89041607bf1eb4a461c7d1a705700ec9ba17d30ae9a7fdc9e9463131db14c0",
     "apps/api/src/config/init-credentials-table.sql": "dcaab8b5c43f08169d170cd8780418f6d06888dcc21bcf9b15bc37732e7b9568",
@@ -93,13 +99,14 @@
     "apps/api/src/middleware/audit.middleware.ts": "c93d69b564c3530a68296b65517129bc51bb0d58fea6001bfa1fff42eee40aa0",
     "apps/api/src/middleware/http.middleware.ts": "e4b413840545d7d0207e84c785bf42c423029784fc7d937b57a9290c0c0d0b62",
     "apps/api/src/middleware/tenant.middleware.ts": "45b1a53fd7c1fd6204b670016ed98609ed57c79179f6f74902302e7486065e25",
-    "apps/api/src/routes/alerts.routes.ts": "2aaaaa8b90c2147816caebf3a2eca20310bfe8c912fae9652107f1a12f20bcb6",
+    "apps/api/src/routes/alerts.routes.ts": "0ea4120f22f71504f659ba25233231f632433923f1322312bfb41116adc4d515",
     "apps/api/src/routes/credentials.routes.ts": "2daedbd02dfcf7e6e5bbd18ed15b3c6e1ac1ba790efb110ea561f1dbc34a1665",
     "apps/api/src/server.ts": "3346002d5b817ed48b324989f3ae860e5bd3f53f157a997bc74939bd67c14af5",
     "apps/api/src/services/email.service.ts": "9a5b0bd8b36756d0e8b1f637c6c12ab432018314edda5d1df47a41dd11c5613e",
     "apps/api/src/services/scheduler.ts": "7d2cf2fd83379e3b7a64ea0784aa586c819d9b55113cbcbcf5b87f505b35a9e4",
     "apps/api/src/types/express.d.ts": "7199a3bf5b739d0d19971c503e38853248864c51c7f519c0de6e18b14b1bdc0c",
     "apps/api/src/utils/__tests__/validator.test.ts": "5e5f599508e0bd7914a1bf78e6ac96f8afec9f36880000a037715af2cdbb757f",
+    "apps/api/test/alerts.routes.test.ts": "b0e7537830716fb93fed570d76496ddab3c6941686fc18753c8be0843e9b9332",
     "apps/api/test/credentials.postgres.test.ts": "486c09d34fdf321592d547f2acc445eed4197b08493cad5ea055d8ff7dd126cd",
     "apps/api/test/credentials.routes.test.ts": "fed1bc5ef72ca176f817228805a9366c3b73b6ad7c9b088a319020af3f644242",
     "apps/api/test/email.service.test.ts": "c345b059cbdf3afb9a7e791b24717c8e8ab4363c9b62a283adbec380598468aa",

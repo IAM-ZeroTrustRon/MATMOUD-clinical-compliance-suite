@@ -40,6 +40,25 @@ deployment, new filename column, or real-record test was performed.
    [PostgreSQL suite](../apps/api/test/credentials.postgres.test.ts) uses real SQL,
    transactions, row locks, RLS, and privileges with mocked identity/S3 boundaries.
 
+## Alert outcome follow-up
+
+The alert-run endpoint now exposes `emailed` and `audited` for every result.
+If delivery succeeds but the separate audit write fails, it returns
+`emailed: true`, `audited: false`, `success: false`, and the fixed code
+`alert_audit_failed`. Deduplication tracking is still attempted. Tracking failure
+after delivery retains the known delivery/audit facts with `alert_tracking_failed`.
+`sent` counts delivered messages; `failed` counts undelivered messages;
+`auditFailed` and `trackingFailed` expose the independent failures. A partial run
+uses HTTP 200 with `status: completed_with_errors`, since a sent email cannot be
+undone. Consumers must inspect results and must not blindly resend delivered items.
+
+[Seven alert-route regressions](../apps/api/test/alerts.routes.test.ts) exercise
+success, audit denial after delivery, send failure, tracking failure, mixed batch
+counts, viewer denial, and lookup-error redaction using synthetic fixtures and
+mocked mail/DB boundaries. These prove visibility, not durable audit retry or
+atomicity between email, audit, and tracking. Tracking still relies on the request
+transaction's finish-time commit; a late commit failure remains an open risk.
+
 ## Reproduce
 
 ```powershell
@@ -69,13 +88,19 @@ setup, and the runtime application's role is not changed by the test.
 ## Results
 
 - API TypeScript build: passed.
-- Default API suite: 71 passed; seven opt-in PostgreSQL cases skipped.
+- Default API suite: 78 passed in six suites; seven opt-in PostgreSQL cases skipped.
 - Separate real PostgreSQL run: seven passed, including actual audit-permission
   failures and deferred COMMIT failure; disposable cleanup completed.
 - Web TypeScript/Vite build: passed.
 - Android JVM tests: 14 distinct cases passed in each of debug and release
   (the 12 MFA/claims cases plus two document-contract cases); debug APK build
   passed. No emulator/device or real cloud E2E test was run.
+
+API TypeScript, default Jest, and real PostgreSQL tests were rerun successfully
+from `C:\Projects\clinical-compliance-suite` after relocation. The earlier web
+and Android results above precede relocation; their source/build files were
+preserved, and those builds were not repeated solely for the folder move.
+See [workspace layout](WORKSPACE-LAYOUT.md) for recovery and repository boundaries.
 
 [CONTROL-TEST-RESULTS.json](evidence/CONTROL-TEST-RESULTS.json) records aggregate
 counts and tested source hashes. Raw Jest output stays under ignored

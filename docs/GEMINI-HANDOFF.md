@@ -22,8 +22,10 @@ This is a continuation brief assembled from the **local application repository, 
 
 Application repository: https://github.com/IAM-ZeroTrustRon/MATMOUD-clinical-compliance-suite
 
-Local application root: `C:\MOUD-Compliance-Security-Audit\clinical-compliance-suite`.
-The parent directory is a **different security-audit/portfolio Git repository**. Do not add the application as a nested repository or submodule to the parent, or publish private implementation material there by accident.
+Local application root: `C:\Projects\clinical-compliance-suite`.
+The audit and case study are independent sibling repositories; see
+[workspace layout and recovery notes](WORKSPACE-LAYOUT.md). The former
+`C:\MOUD-Compliance-Security-Audit` location is a recovery copy only.
 
 Read these files before changing code:
 

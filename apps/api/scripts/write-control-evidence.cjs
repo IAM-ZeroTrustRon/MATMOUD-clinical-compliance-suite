@@ -11,6 +11,7 @@ const allowed = new Set([
   'apps/api/test/credentials.routes.test.ts',
   'apps/api/test/credentials.postgres.test.ts',
   'apps/api/test/email.service.test.ts',
+  'apps/api/test/alerts.routes.test.ts',
 ]);
 const digest = (file) => crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex');
 function result(file) {

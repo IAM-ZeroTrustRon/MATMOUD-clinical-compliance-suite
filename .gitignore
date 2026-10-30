@@ -35,9 +35,8 @@ coverage/
 *.doc
 *.xlsx
 
-# Nested repository — a separate project with its own .git history living inside
-# this working tree (audit finding MOUD-18). Ignoring it prevents `git add -A`
-# from recording a broken submodule pointer that references a commit no remote has.
+# Former nested repository, now a sibling under C:\Projects (MOUD-18).
+# Retain this guard against accidentally reintroducing its Git metadata here.
 grc-case-study-clinical-compliance/
 
 # Android / mobile (apps/mobile-android)
