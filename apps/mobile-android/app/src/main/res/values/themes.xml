@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose provides the real theme at runtime; this XML theme only needs
+         to keep the platform (splash/window) neutral. -->
+    <style name="Theme.Matmoud" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

@@ -58,10 +58,10 @@ export function createAuditMiddleware(db: Pool) {
             req.ip ?? null,              // ip_address
             res.statusCode,              // http_status
           ]
-        ).catch((err: Error) => {
+        ).catch(() => {
           // Log to stderr only. Never surface audit errors to the client —
           // doing so could reveal internal schema details.
-          console.error('[HIPAA-AUDIT] Failed to write audit event:', err.message);
+          console.error('[HIPAA-AUDIT] Failed to write audit event');
         });
       }
     });
@@ -87,7 +87,7 @@ export async function auditPhiRead(
   resourceType: string,
   resourceId: string
 ): Promise<void> {
-  if (!req.user) return;
+  if (!req.user) throw new Error('audit_identity_required');
 
   await db.query(
     `INSERT INTO audit_events

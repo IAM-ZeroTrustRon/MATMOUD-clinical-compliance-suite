@@ -18,7 +18,6 @@ export interface AlertEmailData {
   templateId: string;
   dynamicTemplateData: {
     credentialId: string;
-    patientName?: string;
     expirationDate: string;
   };
 }
@@ -26,43 +25,34 @@ export interface AlertEmailData {
 /**
  * Sends an expiration alert email via SendGrid.
  *
- * @param data - Alert email payload (no PHI in body, only in template data references)
+ * @param data - Destination/template plus a runtime-validated identifier/date allowlist.
  * @throws If SendGrid API call fails
  */
 export async function sendExpirationAlert(data: AlertEmailData): Promise<void> {
+  const template = data.dynamicTemplateData;
+  if (!template || typeof template !== 'object' || Array.isArray(template) ||
+      Object.keys(template).length !== 2 ||
+      Object.keys(template).some((key) => key !== 'credentialId' && key !== 'expirationDate')) {
+    throw new Error('invalid_alert_template_data');
+  }
+  const { credentialId, expirationDate } = template;
+  // Runtime validation matters even when callers bypass TypeScript's shape checks.
+  if (typeof credentialId !== 'string' ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(credentialId) ||
+      typeof expirationDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(expirationDate) ||
+      !Number.isFinite(Date.parse(`${expirationDate}T00:00:00Z`)) ||
+      new Date(`${expirationDate}T00:00:00Z`).toISOString().slice(0, 10) !== expirationDate) {
+    throw new Error('invalid_alert_template_data');
+  }
   const msg = {
     to: data.to,
     from: process.env.ALERT_FROM_EMAIL || 'alerts@clinical-compliance.com',
     templateId: data.templateId,
     dynamicTemplateData: {
-      ...data.dynamicTemplateData,
-      // NOTE: patientName is included only as a reference identifier.
-      // Full PHI (SSN, DOB, license numbers) must NEVER enter the email pipeline.
+      credentialId,
+      expirationDate,
     },
   };
 
   await sgMail.send(msg);
 }
-
-/**
- * Validates that dynamic template data contains no PHI fields.
- * This is a safety check — if any reserved PHI field names appear in the
- * template data, the send is aborted.
- *
- * @param data - The dynamic template data to validate
- * @throws If PHI field names are detected
- */
-export function validateNoPhiInTemplateData(
-  data: Record<string, unknown>
-): void {
-  const phiFieldNames = ['ssn', 'dob', 'license_number', 'licenseNumber', 'social_security'];
-  const detected = phiFieldNames.filter((field) => field in data);
-
-  if (detected.length > 0) {
-    throw new Error(
-      `COMPLIANCE VIOLATION: PHI fields ${detected.join(', ')} detected in email template data. ` +
-      'No PHI may be sent via email per HIPAA Minimum Necessary standard.'
-    );
-  }
-}
-

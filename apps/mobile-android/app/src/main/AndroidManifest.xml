@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:name=".MatMoudApplication"
+        android:allowBackup="false"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Matmoud">
+
+        <!--
+          No callback intent filter here: the Auth0 SDK merges its own
+          RedirectActivity using the auth0Domain / auth0Scheme placeholders from
+          app/build.gradle.kts. Register this URL in the Auth0 dashboard as both
+          an Allowed Callback URL and an Allowed Logout URL:
+            {auth0Scheme}://{auth0Domain}/android/com.matmoud.app/callback
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

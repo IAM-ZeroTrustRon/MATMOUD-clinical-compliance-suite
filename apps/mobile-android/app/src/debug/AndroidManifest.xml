@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-only manifest overlay. Merged into the application ONLY for debug
+  builds. It attaches a network security config that permits cleartext HTTP
+  for local development (emulator -> host loopback 10.0.2.2). Release builds
+  do NOT include this overlay, so Android's default cleartext-block remains in
+  force for production (TLS 1.3 posture preserved).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application android:networkSecurityConfig="@xml/network_security_config" />
+
+</manifest>

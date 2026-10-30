@@ -1,0 +1,125 @@
+{
+  "schema_version": 2,
+  "review_date": "2026-10-30",
+  "base_revision": "370aee8fc5f31078a74b810e8f70abae8a4484f8",
+  "source_state": "Validation changes on the base revision; tested source bytes identified by source_sha256.",
+  "api": {
+    "execution_started_utc": "2026-10-30T04:58:33.996Z",
+    "tests": 85,
+    "passed": 78,
+    "skipped": 7,
+    "failed": 0,
+    "suites": [
+      {
+        "file": "apps/api/test/credentials.postgres.test.ts",
+        "status": "skipped",
+        "passed": 0,
+        "skipped": 7
+      },
+      {
+        "file": "apps/api/test/credentials.routes.test.ts",
+        "status": "passed",
+        "passed": 25,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/test/alerts.routes.test.ts",
+        "status": "passed",
+        "passed": 7,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/src/utils/__tests__/validator.test.ts",
+        "status": "passed",
+        "passed": 18,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/src/middleware/__tests__/auth.middleware.test.ts",
+        "status": "passed",
+        "passed": 12,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/src/config/__tests__/s3.test.ts",
+        "status": "passed",
+        "passed": 5,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/test/email.service.test.ts",
+        "status": "passed",
+        "passed": 11,
+        "skipped": 0
+      }
+    ]
+  },
+  "postgres": {
+    "execution_started_utc": "2026-10-30T04:59:17.904Z",
+    "tests": 7,
+    "passed": 7,
+    "skipped": 0,
+    "failed": 0,
+    "suites": [
+      {
+        "file": "apps/api/test/credentials.postgres.test.ts",
+        "status": "passed",
+        "passed": 7,
+        "skipped": 0
+      }
+    ]
+  },
+  "android": [
+    {
+      "variant": "testDebugUnitTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "variant": "testReleaseUnitTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0
+    }
+  ],
+  "android_results_origin": "Relocated local Gradle build succeeded October 30; JVM test tasks reused cached 14-case results per variant. Hosted validation is recorded separately in GitHub Actions.",
+  "debug_apk": {
+    "bytes": 12005444,
+    "sha256": "ecea0a82d06c4424aa6a28a71b686156065dc85bf217442c0201f60e0f5bae78"
+  },
+  "scope": "Synthetic fixtures only. HTTP unit tests double identity, DB transport, and S3; PostgreSQL tests use a disposable restricted-role DB with identity/S3 doubles. Android tests are JVM tests, not device or cloud E2E.",
+  "source_hash_representation": "UTF-8 text with CRLF normalized to LF, matching canonical Git blobs; APK hash uses raw bytes.",
+  "source_sha256": {
+    ".github/workflows/validation.yml": "2548c59ea2c2ff5a2d82f0c7b4406ef87277b3d61fb46c21736103ccbf321755",
+    "apps/api/jest.config.js": "809d01b22568963f6799938ac73a55ef7d54c6657187edc9821334fd8cdf53cb",
+    "apps/api/package.json": "cb45eb7a5e607ec653f997bf8a365b1610b22d0f934d29cf730f53c6bbb92d69",
+    "apps/api/scripts/test-postgres.cjs": "8d20fb1cca026a31dbdc15124f0e740e42da9d70795020d70db220d63b5b6106",
+    "apps/api/scripts/write-control-evidence.cjs": "5f122abfca4aa13082192a7c79cd59e872f324ab71d584989e52ea4828c32f2f",
+    "apps/api/src/config/__tests__/s3.test.ts": "bdb69ccab60594018f9cca52911e97865b90ab2c4e3e36d8eb547b56ef701ce8",
+    "apps/api/src/config/init-audit-table.sql": "42024023e02f0a6a8a7f5487cbfa77e41e686acec57b92180d55fc8be4709843",
+    "apps/api/src/config/init-credentials-table.sql": "4bacdbf56d8c4c7b90455dd03f5e7ad3339d98681c66129ea6ef661ecbdf2ba8",
+    "apps/api/src/middleware/__tests__/auth.middleware.test.ts": "851cb0d727a6d305c5e91e5cd1c3f23fecf63d7025973fb4b2a2b8a688cc18ad",
+    "apps/api/src/middleware/audit.middleware.ts": "fa9a650acb75a700c27eeeaca8ed17ddb6edb0400b69a9aacf1706476b988550",
+    "apps/api/src/middleware/http.middleware.ts": "e4b413840545d7d0207e84c785bf42c423029784fc7d937b57a9290c0c0d0b62",
+    "apps/api/src/middleware/tenant.middleware.ts": "442d2e00dae6de196f53070ba0a983f22f49d9ae708a112374bc7184a8acac42",
+    "apps/api/src/routes/alerts.routes.ts": "25df4621bedef432ec0aebd58382e030ee4e621616c6e34b620deafe58fc745d",
+    "apps/api/src/routes/credentials.routes.ts": "1c786ec8d13954c15cf88c9e0d53d99ca608082111ed2276a08cfd4da336716f",
+    "apps/api/src/server.ts": "a34e3907a8ad16e563d08c710aba18c948c72b95a7a1cc75877cf373e70f18fe",
+    "apps/api/src/services/email.service.ts": "7bbddb7a8606c24fbc4b1da6621d3093d3a2f093eddcd58ab7bef016979dcf86",
+    "apps/api/src/services/scheduler.ts": "29ede45ac8fa73b052f7c9b622ff1578d224a24cbbdbc4db5f546f1f2609ee40",
+    "apps/api/src/types/express.d.ts": "ca1e01f8c6303ca444726b5022a2de42ad3db310121fe480264919a127d06b73",
+    "apps/api/src/utils/__tests__/validator.test.ts": "5e5f599508e0bd7914a1bf78e6ac96f8afec9f36880000a037715af2cdbb757f",
+    "apps/api/test/alerts.routes.test.ts": "b0e7537830716fb93fed570d76496ddab3c6941686fc18753c8be0843e9b9332",
+    "apps/api/test/credentials.postgres.test.ts": "486c09d34fdf321592d547f2acc445eed4197b08493cad5ea055d8ff7dd126cd",
+    "apps/api/test/credentials.routes.test.ts": "fed1bc5ef72ca176f817228805a9366c3b73b6ad7c9b088a319020af3f644242",
+    "apps/api/test/email.service.test.ts": "c345b059cbdf3afb9a7e791b24717c8e8ab4363c9b62a283adbec380598468aa",
+    "apps/mobile-android/app/src/main/java/com/matmoud/app/data/api/Credential.kt": "38751c54852f7e714c9785a32406ef90292fc7501eb05ff58efe87bd9045a8d5",
+    "apps/mobile-android/app/src/test/java/com/matmoud/app/auth/CredentialContractTest.kt": "507da177bacc831a5f7cc17969263f5e5855e48124507ac20110470fbcf5458b",
+    "apps/web/package.json": "d6ffda4c90ab8702aeba65e916730d47abc9c05039b05e3080b0d63664ebdfb1",
+    "apps/web/src/App.tsx": "024353018dc8ac060bfd25d69fec40bd4d9baef77cb5b403590aa8959b0c4220",
+    "apps/web/src/components/types.ts": "5e009ae28e63f4ef7aa99c390af8e8d2e09f88e8224f0416333ed9bd851f1cea",
+    "package-lock.json": "55716359652d1da20f20835d705c2a6f5fd3b5b066f4a9e3917ef46f5afdc7d8",
+    "package.json": "175c24dc57c6dba51f19b706324b5b8c313a3d870641a6db42692ae58590a9e1"
+  }
+}

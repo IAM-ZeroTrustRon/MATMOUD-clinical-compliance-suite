@@ -1,6 +1,41 @@
 # MAT/MOUD Clinical Compliance Suite
 
-A HIPAA-compliant, multi-tenant credential and compliance management platform for MAT/MOUD clinics. Built with a security-first architecture that satisfies **HIPAA** and **42 CFR Part 2** from day one.
+## Control assurance evidence
+
+[Automated validation](docs/CI-VALIDATION.md) defines API/web, PostgreSQL, and
+Android checks on pushes and pull requests. Required-check enforcement is a
+separate repository setting; consult the actual Actions run for its result.
+
+See [independent workspace layout](docs/WORKSPACE-LAYOUT.md) for the application,
+audit, and case-study repository locations and recovery notes.
+
+[October 29 backend hardening](docs/HARDENING-2026-10-29.md) adds tenant-scoped
+upload persistence, a `has_document` list contract, fail-closed read audits,
+safe error/mail boundaries, and regression tests. Current results are 78 default
+API tests plus seven separately executed real-PostgreSQL tests, with 14 JVM
+tests per Android build variant. The earlier 35-test run is superseded.
+
+[Compliance controls: description, test, and evidence](docs/CONTROL-EVIDENCE.md)
+provides one paragraph per control, with implementation references, the test or
+acceptance criterion, its demonstrated scope, and known gaps. The
+[sanitized test summary](docs/evidence/CONTROL-TEST-RESULTS.json) records the
+October 29, 2026 API regression run without application records or raw logs.
+
+## Current development handoff
+
+Read [the Gemini project handoff](docs/GEMINI-HANDOFF.md) for the consolidated
+architecture, Android progress, historical test evidence, separate CEU branch,
+chat-only prototype work, and remaining integration tasks. Updated October 20,
+2026. For Android setup, see [the module guide](apps/mobile-android/CLAUDE.md).
+See [the October 20 execution report](docs/EXECUTION-STATUS-2026-10-20.md) for
+fresh validation results and database/API review findings.
+Statements below about readiness describe project intent and earlier milestones;
+use the handoff and security debt log for current limitations.
+
+A multi-tenant credential and compliance management prototype for MAT/MOUD clinics,
+designed against **HIPAA** and **42 CFR Part 2** requirements. Implemented controls,
+test evidence, and unresolved gaps are documented in the control register;
+public availability does not establish production readiness or regulatory compliance.
 
 ---
 

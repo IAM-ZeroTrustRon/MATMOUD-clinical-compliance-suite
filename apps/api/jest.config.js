@@ -11,12 +11,12 @@
 /** @type {import('jest').Config} */
 module.exports = {
   testEnvironment: 'node',
-  roots: ['<rootDir>/src'],
+  roots: ['<rootDir>/src', '<rootDir>/test'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
   transform: {
     '^.+\\.ts$': [
       'ts-jest',
-      { tsconfig: { types: ['node', 'jest'], esModuleInterop: true } },
+      { tsconfig: { rootDir: '.', types: ['node', 'jest'], esModuleInterop: true } },
     ],
   },
   clearMocks: true,

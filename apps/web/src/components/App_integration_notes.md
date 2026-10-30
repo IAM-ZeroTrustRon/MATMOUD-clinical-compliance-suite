@@ -81,7 +81,7 @@ const [showAddForm, setShowAddForm] = useState(false);
       <td>
         <DocumentCell
           credentialId={cred.id}
-          hasDocument={!!cred.document_key}
+          hasDocument={cred.has_document}
           apiBase={API_BASE}
           getAuthHeaders={getAuthHeaders}
           onUploaded={handleFetchCredentials}
@@ -93,13 +93,11 @@ const [showAddForm, setShowAddForm] = useState(false);
 ```
 
 ## Things to double check against the live backend before wiring this in
-1. **`GET /credentials` must return `document_key`** so `DocumentCell` knows
-   whether to show "View" vs the upload input. Confirm the SELECT in
-   `credentials.routes.ts` includes it (it should, per the last verified diff).
-2. **`license_number` is not in the masking denylist** in the current backend
-   code we reviewed — only `provider_name`, `ssn`, `dob` are. Confirmed
-   intentional? A license number isn't classic PHI, but worth a deliberate
-   yes/no like the other masking decisions in this project, not a default.
+1. **`GET /credentials` returns `has_document: boolean`**, never a storage key,
+   so `DocumentCell` can choose View versus Upload without storage-path disclosure.
+   Upload responses also expose only document presence, status, and ETag.
+2. **Tier 3 masks `provider_name`, `ssn`, `dob`, and `license_number`** on the
+   server. Validate the network response, not just display concealment.
 3. **`UserAccessBadge` reads roles from `useAuth0()`'s `user` object — the
    ID token — not the access token.** The backend's `authMiddleware` reads
    roles from the *access* token it receives as a Bearer header. These are

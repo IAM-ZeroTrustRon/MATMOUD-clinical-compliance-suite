@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-only network security config. This file exists only in the debug
+  source set, so the cleartext allowance cannot reach release builds.
+  Cleartext HTTP is permitted ONLY to the emulator's host-loopback alias so the
+  app can reach the local API at http://10.0.2.2:3000. Every other host still
+  requires TLS, even in debug builds.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

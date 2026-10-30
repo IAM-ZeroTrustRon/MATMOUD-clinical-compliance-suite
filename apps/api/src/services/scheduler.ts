@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { getClientForTenant } from '../config/db';
 import { getExpiringCredentials, markAlertSent } from './expiration.service';
-import { sendExpirationAlert, validateNoPhiInTemplateData } from './email.service';
+import { sendExpirationAlert } from './email.service';
 
 /**
  * Scheduler service for compliance alerts.
@@ -77,16 +77,6 @@ export function startAlertScheduler(): void {
         return;
       }
 
-      // Validate template data before sending (denylist check)
-      const templateData = expiringCreds.map((cred) => ({
-        credentialId: cred.id,
-        expirationDate: cred.expiration_date,
-      }));
-
-      for (const data of templateData) {
-        validateNoPhiInTemplateData(data);
-      }
-
       // Send alerts
       let sent = 0;
       let failed = 0;
@@ -106,9 +96,8 @@ export function startAlertScheduler(): void {
           await markAlertSent(client, cred.id);
 
           sent++;
-        } catch (err) {
-          const message = err instanceof Error ? err.message : 'unknown_error';
-          console.error('[SCHEDULER] Failed to send alert for credential', cred.id, ':', message);
+        } catch {
+          console.error('[SCHEDULER] Alert delivery failed');
           failed++;
         }
       }
@@ -117,8 +106,8 @@ export function startAlertScheduler(): void {
 
       // Commit the RLS transaction (marks are persisted)
       await client.query('COMMIT');
-    } catch (err) {
-      console.error('[SCHEDULER] Alert run failed:', err);
+    } catch {
+      console.error('[SCHEDULER] Alert run failed');
     } finally {
       if (client) {
         // Rollback if anything is still open, then release

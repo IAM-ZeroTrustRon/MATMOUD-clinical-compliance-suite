@@ -4,7 +4,7 @@ import { createTenantMiddleware } from '../middleware/tenant.middleware';
 import { createAuditMiddleware, auditPhiRead } from '../middleware/audit.middleware';
 import { requireRole, ROLES } from '../middleware/rbac';
 import { getExpiringCredentials, markAlertSent } from '../services/expiration.service';
-import { sendExpirationAlert, validateNoPhiInTemplateData } from '../services/email.service';
+import { sendExpirationAlert } from '../services/email.service';
 import pool from '../config/db';
 
 const router = Router();
@@ -44,20 +44,15 @@ router.post(
       // Fetch expiring credentials (RLS-scoped via req.dbClient)
       const expiringCreds = await getExpiringCredentials(client, days);
 
-      // Validate that no PHI ends up in email templates
-      const templateData = expiringCreds.map((cred) => ({
-        credentialId: cred.id,
-        expirationDate: cred.expiration_date,
-      }));
-
-      for (const data of templateData) {
-        validateNoPhiInTemplateData(data);
-      }
-
       // Send alerts
-      const sendResults: Array<{ credentialId: string; success: boolean; error?: string }> = [];
+      const sendResults: Array<{
+        credentialId: string; success: boolean; emailed: boolean; audited: boolean;
+        error?: string;
+      }> = [];
 
       for (const cred of expiringCreds) {
+        let emailed = false;
+        let audited = false;
         try {
           await sendExpirationAlert({
             to: process.env.ALERT_RECIPIENT_EMAIL || '',
@@ -67,28 +62,35 @@ router.post(
               expirationDate: cred.expiration_date,
             },
           });
+          emailed = true;
 
-          // Mark as alerted to prevent duplicate sends on the next run
+          // Delivery cannot be undone. Expose audit failure without misreporting
+          // the delivered message as unsent or returning raw provider/DB errors.
+          try {
+            await auditPhiRead(pool, req, 'alert_sent', cred.id);
+            audited = true;
+          } catch {
+            console.error('[HIPAA-AUDIT] Failed to log alert send');
+          }
+
+          // Keep deduplication even if the separate audit write failed.
           await markAlertSent(client, cred.id);
-
-          // Log each alert send as a PHI read (since we're acting on credential data)
-          await auditPhiRead(pool, req, 'alert_sent', cred.id).catch((err: Error) => {
-            console.error('[HIPAA-AUDIT] Failed to log alert send:', err.message);
-          });
-
-          sendResults.push({ credentialId: cred.id, success: true });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : 'unknown_error';
-          console.error('[EMAIL] Failed to send alert for credential', cred.id, ':', message);
-          sendResults.push({ credentialId: cred.id, success: false, error: message });
+          sendResults.push({ credentialId: cred.id, success: audited, emailed, audited,
+            ...(!audited ? { error: 'alert_audit_failed' } : {}) });
+        } catch {
+          console.error('[ALERT] Alert processing failed');
+          sendResults.push({ credentialId: cred.id, success: false, emailed, audited,
+            error: emailed ? 'alert_tracking_failed' : 'alert_send_failed' });
         }
       }
 
       res.json({
-        status: 'completed',
+        status: sendResults.some((r) => !r.success) ? 'completed_with_errors' : 'completed',
         total: expiringCreds.length,
-        sent: sendResults.filter((r) => r.success).length,
-        failed: sendResults.filter((r) => !r.success).length,
+        sent: sendResults.filter((r) => r.emailed).length,
+        failed: sendResults.filter((r) => !r.emailed).length,
+        auditFailed: sendResults.filter((r) => r.emailed && !r.audited).length,
+        trackingFailed: sendResults.filter((r) => r.error === 'alert_tracking_failed').length,
         results: sendResults,
       });
     } catch (err) {

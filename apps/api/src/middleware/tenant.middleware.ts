@@ -18,8 +18,9 @@ const TENANT_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
  * to guarantee the RLS policy is active. Queries on a fresh pool connection
  * will NOT have the tenant context set and will fail the RLS check.
  *
- * The connection is committed and released when the response finishes,
- * or rolled back and released if the connection closes unexpectedly.
+ * Writers may await req.commitTenantTransaction() before returning success.
+ * Otherwise successful responses finalize on finish; error/closed responses
+ * roll back. Finalization is idempotent so the connection is released once.
  */
 export function createTenantMiddleware(db: Pool) {
   return async function tenantMiddleware(
@@ -53,19 +54,28 @@ export function createTenantMiddleware(db: Pool) {
       return;
     }
 
-    let connectionReleased = false;
+    let completion: Promise<void> | undefined;
+
+    function finishTransaction(commit: boolean): Promise<void> {
+      if (completion) return completion;
+      completion = (async () => {
+        try {
+          await client.query(commit ? 'COMMIT' : 'ROLLBACK');
+        } catch (err) {
+          if (commit) await client.query('ROLLBACK').catch(() => {});
+          throw err;
+        } finally {
+          client.release();
+        }
+      })();
+      return completion;
+    }
 
     function releaseConnection(commit: boolean): void {
-      if (connectionReleased) return;
-      connectionReleased = true;
-
-      const cleanup = commit
-        ? client.query('COMMIT').catch(() => client.query('ROLLBACK'))
-        : client.query('ROLLBACK');
-
-      cleanup
-        .catch(() => {/* already rolling back */})
-        .finally(() => client.release());
+      void finishTransaction(commit).catch(() => {
+        // Never log driver messages: they can contain connection/record data.
+        console.error('[DATABASE] Tenant transaction finalization failed');
+      });
     }
 
     try {
@@ -86,9 +96,10 @@ export function createTenantMiddleware(db: Pool) {
 
     req.tenantId = tenantId;
     req.dbClient = client;
+    req.commitTenantTransaction = () => finishTransaction(true);
 
-    // Commit and release after the response is fully sent.
-    res.on('finish', () => releaseConnection(true));
+    // Fallback cleanup for handlers that have not explicitly finalized.
+    res.on('finish', () => releaseConnection(res.statusCode >= 200 && res.statusCode < 300));
 
     // Roll back and release if the socket closes before the response finishes.
     res.on('close', () => releaseConnection(false));

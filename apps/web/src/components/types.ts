@@ -5,7 +5,7 @@ export interface Credential {
   ssn: string | null; // PHI
   license_number: string; // PHI
   expiration_date: string;
-  document_key: string | null;
+  has_document: boolean;
   created_at: string;
 }
 
