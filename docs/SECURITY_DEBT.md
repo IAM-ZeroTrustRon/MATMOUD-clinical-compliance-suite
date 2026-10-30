@@ -39,6 +39,83 @@ not establish RLS enforcement for the currently configured superuser account.
 
 ---
 
+## Dependency advisories — compatible remediation applied
+
+**Status:** Open — reviewed October 30, 2026; synthetic data only.
+
+The October 30 fresh root-workspace audit initially reported 22 advisories:
+10 low, two moderate, eight high, and two critical. `npm audit fix` was run
+without `--force`. The resulting lockfile upgrades removed the high and
+critical findings, upgraded Express to 4.22.3 and `proxy-addr` to 2.0.8, and
+kept `@sendgrid/mail` on the existing 8.x line. A root `qs` override pins the
+compatible 6.16.2 release so Express does not resolve the vulnerable 6.15.4
+transitive copy.
+
+The remaining 10 findings are low-risk transitive advisories: `deepmerge`
+through both Jest 29 and SendGrid 8, the associated Jest packages, and the
+SendGrid client/helpers chain. The available automated alternatives require an unreviewed
+major downgrade of Jest/ts-jest or a downgrade of SendGrid to 6.5.2, so those
+changes are intentionally deferred.
+
+**Follow-up due:** 2026-11-30 — re-run `npm audit`, review patched SendGrid
+and Jest-compatible releases, and remove the override if upstream dependency
+ranges make it unnecessary. Do not enter real provider data until the open
+encryption and runtime-role findings in this register are resolved.
+
+**Validated at this revision — October 30, 2026 (evening).** After the desktop
+environment was repaired (the C: volume had been full, and registry requests
+were stalling on IPv6 resolution), a clean `npm ci --ignore-scripts` completed
+with 554 packages and no errors. The API Jest suite passed 78 tests with the
+seven opt-in cases skipped (`2026-10-30T23:18:16Z`), the disposable PostgreSQL
+fixture passed all seven cases and was dropped (`2026-10-30T23:19:47Z`), and the
+Gradle build reported `BUILD SUCCESSFUL`. The Android tasks were `UP-TO-DATE`,
+so those 14-case-per-variant results are cached 00:58 outputs rather than a
+fresh execution; that distinction is recorded in the evidence summary and the
+hosted Android job re-executes them from a clean checkout.
+
+When regenerated, [CONTROL-TEST-RESULTS.json](evidence/CONTROL-TEST-RESULTS.json)
+matched **31 of 31** `source_sha256` entries, including the new
+`.github/dependabot.yml`. `npm audit` on the installed tree confirmed the
+remediation figure of 10 remaining low advisories and no moderate, high, or
+critical findings.
+
+---
+
+## Duplicate workspace lockfile — `apps/api/package-lock.json`
+
+**Status:** Open — confirmed October 30, 2026.
+**Component:** `apps/api/package-lock.json` (tracked, 513 packages)
+
+**Current state:** The repository carries two npm lockfiles for the same code.
+CI installs from the root workspace lockfile only, and the control-evidence
+generator hashes only that root file. The nested `apps/api` lockfile is left
+over from the pre-workspace install path (the root `install:all` script still
+uses `cd apps/api && npm install`) and is ignored by a workspace install.
+
+**Measured divergence on October 30, 2026:** auditing the nested lockfile
+reported 18 advisories (two critical, five high, one moderate, ten low), and it
+still resolved `express` 4.22.2, `proxy-addr` 2.0.7, `body-parser` 1.20.6, and
+`qs` 6.15.3 after the root workspace had been remediated. It resolves `express`
+4.22.2, which no longer satisfies the `^4.22.3` manifest range, so a `npm ci`
+run from inside `apps/api` fails on the lock/manifest mismatch.
+
+**Why it matters:** An audit or install performed from the wrong directory
+reports a materially different and worse vulnerability posture than the
+pipeline enforces, which undermines the reproducibility claim for
+build-input integrity. Dependabot is deliberately configured against the root
+lockfile only, so nothing keeps this second file current.
+
+**Resolution:** Delete the nested lockfile and repoint `install:all` at the
+workspace root, then confirm `npm ci` from the repository root — the only
+installation path CI uses. Verify no workflow or script references the nested
+file before removal. Target: before the next dependency review cycle.
+
+**Follow-up due:** 2026-11-30.
+
+---
+
+---
+
 ## SSN Column — No Encryption at Rest
 
 **Status:** Deferred — Pre-Production Requirement

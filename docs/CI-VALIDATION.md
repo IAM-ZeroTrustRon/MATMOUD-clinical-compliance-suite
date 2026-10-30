@@ -25,9 +25,50 @@ successful compilation does not validate real login or camera behavior.
 
 The locked npm install disables lifecycle scripts and automatic audit/funding
 requests. The builds exercise the installed toolchain directly. This workflow
-does not claim dependency vulnerability scanning. The local clean-install report
-listed 22 advisories (10 low, two moderate, eight high, two critical); remediation
-and applicability review remain open. No forced dependency upgrades were applied.
+does not claim dependency vulnerability scanning. On October 30, the fresh local
+audit reported 22 advisories before remediation; `npm audit fix` without
+`--force`, an explicit patch-level Express pin, and a compatible root `qs`
+override reduced that to 10 low advisories. No forced upgrades or major version
+changes were applied. The remaining
+advisories are documented in [SECURITY_DEBT.md](SECURITY_DEBT.md), including
+the SendGrid compatibility constraint and the Jest development-tool chain.
+
+### Dependency remediation status, October 30, 2026
+
+`npm audit` against the root workspace lockfile reported 22 advisories before
+this change (10 low, two moderate, eight high, two critical) and 10 after it
+(10 low; zero moderate, high, or critical). Four of the remaining advisories sit
+in runtime dependencies (`@sendgrid/mail`, `@sendgrid/client`,
+`@sendgrid/helpers`, `deepmerge`); six are in the Jest/ts-jest development
+toolchain. Every automated remedy for those ten requires a major downgrade, so
+they are deferred with a documented rationale rather than force-fixed.
+
+**Execution at this revision — October 30, 2026, evening.** The dependency
+refresh was validated on the review workstation once the environment was
+repaired. Two faults had been blocking it, neither of them the lockfile: the
+C: volume was completely full (2.3 GB free of 238 GB), which caused the
+`ENOTEMPTY` and `ENOENT TAR_ENTRY_ERROR` extraction failures, and registry
+requests were stalling on IPv6 resolution, taking 37 s to 195 s each. After
+removing the aborted install trees and the npm cache, resolving IPv4 first, and
+raising socket concurrency, a clean `npm ci --ignore-scripts` completed with
+**554 packages, no errors**.
+
+Recorded results at this revision:
+
+| Suite | Result | Executed |
+| --- | --- | --- |
+| API Jest | 78 passed, 7 opt-in cases skipped, 0 failed | fresh — `2026-10-30T23:18:16Z` |
+| PostgreSQL isolation | 7 passed; disposable fixture created and dropped | fresh — `2026-10-30T23:19:47Z` |
+| Android JVM + debug APK | `BUILD SUCCESSFUL`; 14 cases per variant | **cached** — 00:58 outputs, tasks reported `UP-TO-DATE` |
+
+`npm audit` against the installed tree confirms the remediation figure: 22
+advisories before, 10 after, all low, with none in the moderate, high, or
+critical bands. The Android figures are a cached-result attestation rather than
+a fresh JVM execution, because no Android source or Gradle input changed in this
+dependency-only change set; the hosted Android job re-executes the same tasks
+from a clean checkout. The evidence summary was regenerated from these inputs
+and now matches **31 of 31** `source_sha256` entries, including the new
+`.github/dependabot.yml`.
 
 ## Lint and release gates
 

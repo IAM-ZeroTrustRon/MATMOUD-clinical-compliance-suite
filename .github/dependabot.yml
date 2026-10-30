@@ -1,0 +1,39 @@
+# Automated dependency updates.
+#
+# `directory: /` for npm is deliberate: the root workspace lockfile is the only
+# one `npm ci` installs in CI and the only one pinned by
+# docs/evidence/CONTROL-TEST-RESULTS.json. The legacy nested
+# apps/api/package-lock.json is intentionally not targeted; see
+# docs/SECURITY_DEBT.md.
+#
+# Major-version guards below reflect documented decisions: Express 5 is a
+# breaking routing change to be planned deliberately, and the only audit remedy
+# for the SendGrid advisory chain is a two-major downgrade that must not be
+# merged as routine maintenance.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    ignore:
+      - dependency-name: "express"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "@sendgrid/mail"
+        update-types:
+          - "version-update:semver-major"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"

@@ -49,7 +49,8 @@ const android = ['testDebugUnitTest', 'testReleaseUnitTest'].map((variant) => {
   return { variant, ...totals };
 });
 const sourceFiles = [...allowed,
-  '.github/workflows/validation.yml', 'package.json', 'package-lock.json',
+  '.github/workflows/validation.yml', '.github/dependabot.yml',
+  'package.json', 'package-lock.json',
   'apps/api/package.json', 'apps/web/package.json',
   'apps/api/src/routes/credentials.routes.ts', 'apps/api/src/middleware/tenant.middleware.ts',
   'apps/api/src/middleware/audit.middleware.ts', 'apps/api/src/middleware/http.middleware.ts',
@@ -68,7 +69,7 @@ const summary = {
   base_revision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
   source_state: 'Validation changes on the base revision; tested source bytes identified by source_sha256.',
   api, postgres, android,
-  android_results_origin: 'Relocated local Gradle build succeeded October 30; JVM test tasks reused cached 14-case results per variant. Hosted validation is recorded separately in GitHub Actions.',
+  android_results_origin: 'Gradle reported BUILD SUCCESSFUL at this revision with testDebugUnitTest, testReleaseUnitTest, and assembleDebug all UP-TO-DATE; the 14-case-per-variant XML results and the debug APK are the October 30 00:58 build outputs, reused because no Android source or Gradle input changed in this dependency-only change set. Treat the Android figures as cached-result attestation, not a fresh JVM execution. Hosted validation is recorded separately in GitHub Actions.',
   debug_apk: { bytes: fs.statSync(path.join(root, apk)).size, sha256: digest(apk) },
   scope: 'Synthetic fixtures only. HTTP unit tests double identity, DB transport, and S3; PostgreSQL tests use a disposable restricted-role DB with identity/S3 doubles. Android tests are JVM tests, not device or cloud E2E.',
   source_hash_representation: 'UTF-8 text with CRLF normalized to LF, matching canonical Git blobs; APK hash uses raw bytes.',
