@@ -76,3 +76,11 @@ Android job uses a clean checkout without a restored Gradle build cache.
 
 The GitHub branch-protection endpoint returned **Branch not protected** for
 `main`. No protection setting was changed by this work.
+
+## Hosted verification, October 30, 2026
+
+At `370aee8` (explicit Android SDK root), all three checks passed in
+[Validation run 41019738828](https://github.com/IAM-ZeroTrustRon/MATMOUD-clinical-compliance-suite/actions/runs/41019738828).
+The local branch was fast-forwarded to preserve that remote change, and its
+workflow hash was refreshed in the evidence summary. Earlier local execution
+timestamps were retained rather than representing the refresh as a new test run.

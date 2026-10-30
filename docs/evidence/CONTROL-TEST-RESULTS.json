@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "review_date": "2026-10-30",
-  "base_revision": "c0438a2ba77b8e74a881e1b81743be89096af5f8",
+  "base_revision": "370aee8fc5f31078a74b810e8f70abae8a4484f8",
   "source_state": "Validation changes on the base revision; tested source bytes identified by source_sha256.",
   "api": {
     "execution_started_utc": "2026-10-30T04:58:33.996Z",
@@ -91,7 +91,7 @@
   "scope": "Synthetic fixtures only. HTTP unit tests double identity, DB transport, and S3; PostgreSQL tests use a disposable restricted-role DB with identity/S3 doubles. Android tests are JVM tests, not device or cloud E2E.",
   "source_hash_representation": "UTF-8 text with CRLF normalized to LF, matching canonical Git blobs; APK hash uses raw bytes.",
   "source_sha256": {
-    ".github/workflows/validation.yml": "7ef8b5969d0f67ee82bc52ff811b7345a008a670dbc58abaa8aea0b7af0578a4",
+    ".github/workflows/validation.yml": "2548c59ea2c2ff5a2d82f0c7b4406ef87277b3d61fb46c21736103ccbf321755",
     "apps/api/jest.config.js": "809d01b22568963f6799938ac73a55ef7d54c6657187edc9821334fd8cdf53cb",
     "apps/api/package.json": "cb45eb7a5e607ec653f997bf8a365b1610b22d0f934d29cf730f53c6bbb92d69",
     "apps/api/scripts/test-postgres.cjs": "8d20fb1cca026a31dbdc15124f0e740e42da9d70795020d70db220d63b5b6106",
