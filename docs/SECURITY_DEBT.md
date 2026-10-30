@@ -62,18 +62,22 @@ and Jest-compatible releases, and remove the override if upstream dependency
 ranges make it unnecessary. Do not enter real provider data until the open
 encryption and runtime-role findings in this register are resolved.
 
-**Outstanding at this revision — evidence not yet regenerated.** The lockfile
-change alters four of the thirty inputs pinned in
-[CONTROL-TEST-RESULTS.json](evidence/CONTROL-TEST-RESULTS.json) (`package.json`,
-`package-lock.json`, `apps/api/package.json`,
-`apps/api/scripts/write-control-evidence.cjs`), and the summary predates the
-new `.github/dependabot.yml` entry. The recorded executions were **not**
-repeated at this revision: a clean dependency install could not complete on the
-Windows review workstation, so no local test result is claimed for the new
-lockfile. Hashes were deliberately left unrefreshed rather than made to match
-an unexecuted tree. Regenerate the summary after a real API/PostgreSQL/Android
-run at this revision; until then the committed evidence should be treated as
-describing the previous dependency set.
+**Validated at this revision — October 30, 2026 (evening).** After the desktop
+environment was repaired (the C: volume had been full, and registry requests
+were stalling on IPv6 resolution), a clean `npm ci --ignore-scripts` completed
+with 554 packages and no errors. The API Jest suite passed 78 tests with the
+seven opt-in cases skipped (`2026-10-30T23:18:16Z`), the disposable PostgreSQL
+fixture passed all seven cases and was dropped (`2026-10-30T23:19:47Z`), and the
+Gradle build reported `BUILD SUCCESSFUL`. The Android tasks were `UP-TO-DATE`,
+so those 14-case-per-variant results are cached 00:58 outputs rather than a
+fresh execution; that distinction is recorded in the evidence summary and the
+hosted Android job re-executes them from a clean checkout.
+
+When regenerated, [CONTROL-TEST-RESULTS.json](evidence/CONTROL-TEST-RESULTS.json)
+matched **31 of 31** `source_sha256` entries, including the new
+`.github/dependabot.yml`. `npm audit` on the installed tree confirmed the
+remediation figure of 10 remaining low advisories and no moderate, high, or
+critical findings.
 
 ---
 

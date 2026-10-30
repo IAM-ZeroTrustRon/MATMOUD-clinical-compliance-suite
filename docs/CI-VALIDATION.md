@@ -43,45 +43,32 @@ in runtime dependencies (`@sendgrid/mail`, `@sendgrid/client`,
 toolchain. Every automated remedy for those ten requires a major downgrade, so
 they are deferred with a documented rationale rather than force-fixed.
 
-**This revision was not re-executed locally.** A clean dependency install could
-not be completed on the Windows workstation used for this review: `npm ci` and
-`npm install` both stopped at the same point (313 root and 83 workspace
-directory entries), and later attempts failed extraction with repeated
-`ENOTEMPTY` / `ENOENT` `TAR_ENTRY_ERROR`. Overlapping installs were ruled out
-before the final attempt. The API Jest suite, the seven PostgreSQL cases, and
-the Android JVM tests were therefore **not** re-run at this revision by local
-execution, and no local result is claimed for them.
+**Execution at this revision — October 30, 2026, evening.** The dependency
+refresh was validated on the review workstation once the environment was
+repaired. Two faults had been blocking it, neither of them the lockfile: the
+C: volume was completely full (2.3 GB free of 238 GB), which caused the
+`ENOTEMPTY` and `ENOENT TAR_ENTRY_ERROR` extraction failures, and registry
+requests were stalling on IPv6 resolution, taking 37 s to 195 s each. After
+removing the aborted install trees and the npm cache, resolving IPv4 first, and
+raising socket concurrency, a clean `npm ci --ignore-scripts` completed with
+**554 packages, no errors**.
 
-What was verified instead: `npm ci --dry-run` exits 0 against the updated
-lockfile, so the lockfile and the root `qs` override are mutually consistent
-and the hosted `npm ci` step should not fail on a lockfile mismatch; the
-`npm audit` figures above are real measurements of the committed lockfile; and
-the dependency diff was reviewed package by package. Hosted checks on this pull
-request are the re-execution of record for all three suites.
+Recorded results at this revision:
 
-**The evidence summary is stale at this revision.**
-[CONTROL-TEST-RESULTS.json](evidence/CONTROL-TEST-RESULTS.json) still records
-the pre-change inputs. A verification pass finds **26 of 30** `source_sha256`
-entries matching the working tree; the four outstanding entries are precisely
-the files this change touches (`package.json`, `package-lock.json`,
-`apps/api/package.json`, `apps/api/scripts/write-control-evidence.cjs`). The
-summary also predates `.github/dependabot.yml`, which the generator now hashes.
-Recorded execution timestamps (for example `2026-10-30T04:58:33Z` for the API
-suite) were left unchanged rather than refreshed, because refreshing hashes
-without re-executing would assert that the new lockfile was the tested one.
+| Suite | Result | Executed |
+| --- | --- | --- |
+| API Jest | 78 passed, 7 opt-in cases skipped, 0 failed | fresh — `2026-10-30T23:18:16Z` |
+| PostgreSQL isolation | 7 passed; disposable fixture created and dropped | fresh — `2026-10-30T23:19:47Z` |
+| Android JVM + debug APK | `BUILD SUCCESSFUL`; 14 cases per variant | **cached** — 00:58 outputs, tasks reported `UP-TO-DATE` |
 
-Regenerate only after a real run at this revision:
-
-```text
-cd apps/api && npm test -- --runInBand --json --outputFile=coverage/hardening-results.json
-cd apps/api && npm run test:postgres
-cd apps/mobile-android && ./gradlew.bat --no-daemon test assembleDebug
-cd apps/api && node scripts/write-control-evidence.cjs
-```
-
-Until that run completes and the regenerated report is reviewed, this change
-should stay unmerged: merging it as-is would put a state on `main` whose
-committed evidence fails its own hash check.
+`npm audit` against the installed tree confirms the remediation figure: 22
+advisories before, 10 after, all low, with none in the moderate, high, or
+critical bands. The Android figures are a cached-result attestation rather than
+a fresh JVM execution, because no Android source or Gradle input changed in this
+dependency-only change set; the hosted Android job re-executes the same tasks
+from a clean checkout. The evidence summary was regenerated from these inputs
+and now matches **31 of 31** `source_sha256` entries, including the new
+`.github/dependabot.yml`.
 
 ## Lint and release gates
 
