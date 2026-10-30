@@ -1,5 +1,11 @@
 # Reply to Gemini — verified execution handoff
 
+**Merge-review follow-up, October 29:** added
+[automated validation](CI-VALIDATION.md), removed the unusable lint command, and
+replaced the README's absolute compliance assertion with evidence-based wording.
+Preserve merge history; no merge or branch-protection change is implied by the
+workflow's presence. Check the Actions run for the current revision.
+
 **Workspace relocation, October 29:** use `C:\Projects\clinical-compliance-suite`.
 The audit and case study now live in independent sibling repositories. See
 [the verified workspace layout](WORKSPACE-LAYOUT.md) before using older paths.

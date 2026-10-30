@@ -1,0 +1,87 @@
+name: Validation
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validation-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Synthetic fixtures only. No deployment, real identity/mail/cloud credentials,
+# pull_request_target execution, or upload of raw logs/environment files.
+jobs:
+  api-web:
+    name: API tests and web build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - run: npm test --workspace=apps/api -- --runInBand
+
+  postgres:
+    name: PostgreSQL isolation tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: synthetic-ci-only
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Run all seven restricted-role database regressions
+        run: npm run test:postgres --workspace=apps/api
+        env:
+          # Disposable runner service only; this is not a production secret.
+          TEST_ADMIN_DATABASE_URL: postgresql://postgres:synthetic-ci-only@127.0.0.1:5432/postgres
+
+  android:
+    name: Android JVM tests and debug APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install the compile SDK
+        run: sdkmanager 'platforms;android-35' 'build-tools;34.0.0'
+      - name: Test both JVM variants and assemble debug APK
+        working-directory: apps/mobile-android
+        # The wrapper is tracked without executable mode; sh works on clean Linux checkouts.
+        run: sh ./gradlew --no-daemon test assembleDebug

@@ -2,6 +2,10 @@
 
 ## Control assurance evidence
 
+[Automated validation](docs/CI-VALIDATION.md) defines API/web, PostgreSQL, and
+Android checks on pushes and pull requests. Required-check enforcement is a
+separate repository setting; consult the actual Actions run for its result.
+
 See [independent workspace layout](docs/WORKSPACE-LAYOUT.md) for the application,
 audit, and case-study repository locations and recovery notes.
 
@@ -28,7 +32,10 @@ fresh validation results and database/API review findings.
 Statements below about readiness describe project intent and earlier milestones;
 use the handoff and security debt log for current limitations.
 
-A HIPAA-compliant, multi-tenant credential and compliance management platform for MAT/MOUD clinics. Built with a security-first architecture that satisfies **HIPAA** and **42 CFR Part 2** from day one.
+A multi-tenant credential and compliance management prototype for MAT/MOUD clinics,
+designed against **HIPAA** and **42 CFR Part 2** requirements. Implemented controls,
+test evidence, and unresolved gaps are documented in the control register;
+public availability does not establish production readiness or regulatory compliance.
 
 ---
 

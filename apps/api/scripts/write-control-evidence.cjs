@@ -45,6 +45,8 @@ const android = ['testDebugUnitTest', 'testReleaseUnitTest'].map((variant) => {
   return { variant, ...totals };
 });
 const sourceFiles = [...allowed,
+  '.github/workflows/validation.yml', 'package.json', 'package-lock.json',
+  'apps/api/package.json', 'apps/web/package.json',
   'apps/api/src/routes/credentials.routes.ts', 'apps/api/src/middleware/tenant.middleware.ts',
   'apps/api/src/middleware/audit.middleware.ts', 'apps/api/src/middleware/http.middleware.ts',
   'apps/api/src/types/express.d.ts', 'apps/api/src/server.ts',
@@ -58,10 +60,11 @@ const sourceFiles = [...allowed,
 ];
 const apk = 'apps/mobile-android/app/build/outputs/apk/debug/app-debug.apk';
 const summary = {
-  schema_version: 2, review_date: '2026-10-29',
+  schema_version: 2, review_date: '2026-10-30',
   base_revision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
-  source_state: 'Hardening changes on the base revision; tested source bytes identified by source_sha256.',
+  source_state: 'Validation changes on the base revision; tested source bytes identified by source_sha256.',
   api, postgres, android,
+  android_results_origin: 'Relocated local Gradle build succeeded October 30; JVM test tasks reused cached 14-case results per variant. Hosted validation is recorded separately in GitHub Actions.',
   debug_apk: { bytes: fs.statSync(path.join(root, apk)).size, sha256: digest(apk) },
   scope: 'Synthetic fixtures only. HTTP unit tests double identity, DB transport, and S3; PostgreSQL tests use a disposable restricted-role DB with identity/S3 doubles. Android tests are JVM tests, not device or cloud E2E.',
   source_sha256: Object.fromEntries(sourceFiles.sort().map((file) => [file, digest(file)])),

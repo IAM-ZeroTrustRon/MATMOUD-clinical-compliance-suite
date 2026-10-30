@@ -44,7 +44,7 @@ async function run() {
     runtime.password = password;
     fs.mkdirSync(path.join(root, 'coverage'), { recursive: true });
     const child = spawnSync(process.execPath, [
-      path.join(root, 'node_modules/jest/bin/jest.js'), '--runInBand', '--runTestsByPath',
+      require.resolve('jest/bin/jest'), '--runInBand', '--runTestsByPath',
       'test/credentials.postgres.test.ts', '--json', '--outputFile=coverage/hardening-postgres-results.json',
     ], { cwd: root, stdio: 'inherit', env: { ...process.env, NODE_ENV: 'test',
       DATABASE_URL: runtime.toString(), TEST_DATABASE_URL: runtime.toString(),

@@ -1,5 +1,11 @@
 # Backend hardening and regression evidence — October 29, 2026
 
+**October 30 follow-up:** [CI validation](CI-VALIDATION.md) adds automated checks,
+removes the nonfunctional lint command, and records a successful Android rebuild
+from the relocated workspace (JVM tasks reused cached results). The historical
+build timing below is superseded by that follow-up. Required-check enforcement
+and dependency advisory remediation remain open.
+
 This change implements the agreed Option 2 sequence on
 `feat/mobile-oauth-simplification`. It preserves multipart uploads, server-generated
 document keys, the current SQL schema, and the Auth0/pg architecture. No CEU merge,

@@ -9,7 +9,6 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "test": "jest --forceExit --detectOpenHandles",
     "test:postgres": "node scripts/test-postgres.cjs",
-    "lint": "eslint src/",
     "migrate": "npx ts-node src/config/run-migrations.ts"
   },
   "dependencies": {
