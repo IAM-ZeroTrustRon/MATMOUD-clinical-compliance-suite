@@ -82,10 +82,10 @@ encryption and runtime-role findings in this register are resolved.
 environment was repaired (the C: volume had been full, and registry requests
 were stalling on IPv6 resolution), a clean `npm ci --ignore-scripts` completed
 with 554 packages and no errors. The API Jest suite passed **87 of 94** tests
-with the seven opt-in PostgreSQL cases skipped (`2026-10-31T01:42:54Z`); the
+with the seven opt-in PostgreSQL cases skipped (`2026-10-31T03:56:18Z`); the
 nine new cases in `http-hardening` and `rate-limit` are inside that total. The
 disposable PostgreSQL fixture passed all seven cases and was dropped
-(`2026-10-31T01:44:12Z`), and the Gradle build reported `BUILD SUCCESSFUL`. The Android tasks were `UP-TO-DATE`,
+(`2026-10-31T03:59:45Z`), and the Gradle build reported `BUILD SUCCESSFUL`. Both Node suites were re-executed after the runtime pin rather than carried over from the earlier run, so those timestamps belong to runs at this revision under Node 24.18.0. The Android tasks were `UP-TO-DATE`,
 so those 14-case-per-variant results are cached 00:58 outputs rather than a
 fresh execution; that distinction is recorded in the evidence summary and the
 hosted Android job re-executes them from a clean checkout.

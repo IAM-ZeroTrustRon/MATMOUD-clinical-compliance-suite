@@ -32,7 +32,10 @@ function result(file) {
       return { file: relative, status: suite.status,
         passed: suite.assertionResults.filter((test) => test.status === 'passed').length,
         skipped: suite.assertionResults.filter((test) => test.status === 'pending').length };
-    }),
+    // Jest reports suites in completion order, which varies between runs. Sort
+    // by path so a regeneration diff shows result changes only, never suites
+    // that appear to have vanished or gained tests by moving.
+    }).sort((a, b) => a.file.localeCompare(b.file)),
   };
 }
 const api = result('hardening-results.json');

@@ -69,9 +69,15 @@ Recorded results at this revision:
 
 | Suite | Result | Executed |
 | --- | --- | --- |
-| API Jest | 87 passed of 94, 7 opt-in cases skipped, 0 failed | fresh — `2026-10-31T01:42:54Z` |
-| PostgreSQL isolation | 7 passed; disposable fixture created and dropped | fresh — `2026-10-31T01:44:12Z` |
+| API Jest | 87 passed of 94, 7 opt-in cases skipped, 0 failed | fresh — `2026-10-31T03:56:18Z`, Node 24.18.0 |
+| PostgreSQL isolation | 7 passed; disposable fixture created and dropped | fresh — `2026-10-31T03:59:45Z`, Node 24.18.0 |
 | Android JVM + debug APK | `BUILD SUCCESSFUL`; 14 cases per variant | **cached** — 00:58 outputs, tasks reported `UP-TO-DATE` |
+
+Both Node suites were re-executed after the runtime pin (`fa9b83b`) rather than
+carried over from the earlier run, so the timestamps above belong to runs made at
+this revision under Node 24.18.0. The hosted jobs run the same runtime, but CI
+results are recorded in GitHub Actions; they are not inputs to the evidence
+manifest.
 
 `npm audit` against the installed tree gives the figures in the table above: 4
 low in production, 26 across the full tree, and no critical or high findings in
