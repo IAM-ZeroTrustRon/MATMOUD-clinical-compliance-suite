@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
   "review_date": "2026-10-30",
-  "base_revision": "c8a482212d72c6fae38b9f64edd968ae00b977aa",
+  "base_revision": "954e73b62e6deab41aae56dcdabc7c9cc0783f64",
   "source_state": "Validation changes on the base revision; tested source bytes identified by source_sha256.",
   "api": {
-    "execution_started_utc": "2026-10-31T01:42:54.928Z",
+    "execution_started_utc": "2026-10-31T01:50:52.769Z",
     "tests": 94,
     "passed": 87,
     "skipped": 7,
@@ -14,12 +14,6 @@
         "file": "apps/api/test/email.service.test.ts",
         "status": "passed",
         "passed": 11,
-        "skipped": 0
-      },
-      {
-        "file": "apps/api/src/config/__tests__/s3.test.ts",
-        "status": "passed",
-        "passed": 5,
         "skipped": 0
       },
       {
@@ -35,10 +29,10 @@
         "skipped": 0
       },
       {
-        "file": "apps/api/test/credentials.postgres.test.ts",
-        "status": "skipped",
-        "passed": 0,
-        "skipped": 7
+        "file": "apps/api/src/config/__tests__/s3.test.ts",
+        "status": "passed",
+        "passed": 5,
+        "skipped": 0
       },
       {
         "file": "apps/api/test/alerts.routes.test.ts",
@@ -47,9 +41,9 @@
         "skipped": 0
       },
       {
-        "file": "apps/api/test/rate-limit.test.ts",
+        "file": "apps/api/test/credentials.routes.test.ts",
         "status": "passed",
-        "passed": 4,
+        "passed": 25,
         "skipped": 0
       },
       {
@@ -59,10 +53,16 @@
         "skipped": 0
       },
       {
-        "file": "apps/api/test/credentials.routes.test.ts",
+        "file": "apps/api/test/rate-limit.test.ts",
         "status": "passed",
-        "passed": 25,
+        "passed": 4,
         "skipped": 0
+      },
+      {
+        "file": "apps/api/test/credentials.postgres.test.ts",
+        "status": "skipped",
+        "passed": 0,
+        "skipped": 7
       }
     ]
   },
@@ -128,7 +128,7 @@
     "apps/api/test/credentials.postgres.test.ts": "486c09d34fdf321592d547f2acc445eed4197b08493cad5ea055d8ff7dd126cd",
     "apps/api/test/credentials.routes.test.ts": "fed1bc5ef72ca176f817228805a9366c3b73b6ad7c9b088a319020af3f644242",
     "apps/api/test/email.service.test.ts": "c345b059cbdf3afb9a7e791b24717c8e8ab4363c9b62a283adbec380598468aa",
-    "apps/api/test/http-hardening.test.ts": "a1680b32f2b4d7b4d479b64cc0686aeb2001d8fb6af2c5232c97a2b47c6086f1",
+    "apps/api/test/http-hardening.test.ts": "5bec458e2bdb53141ee782d19e46e3ca9591e3dc4d346a0f310090d4f0078bda",
     "apps/api/test/rate-limit.test.ts": "64bd0c86bfc33ea8e1facb199161f5d1a9afbef02a92b65368713edc1956b8d7",
     "apps/mobile-android/app/src/main/java/com/matmoud/app/data/api/Credential.kt": "38751c54852f7e714c9785a32406ef90292fc7501eb05ff58efe87bd9045a8d5",
     "apps/mobile-android/app/src/test/java/com/matmoud/app/auth/CredentialContractTest.kt": "507da177bacc831a5f7cc17969263f5e5855e48124507ac20110470fbcf5458b",
