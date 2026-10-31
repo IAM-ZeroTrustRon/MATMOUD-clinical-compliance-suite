@@ -1,39 +1,15 @@
 {
   "schema_version": 2,
   "review_date": "2026-10-30",
-  "base_revision": "fcc18fd4250f087cd670af70411ba509f9fa8278",
+  "base_revision": "3cdcacadee144950270ac2adc41cee468eacbcdb",
   "source_state": "Validation changes on the base revision; tested source bytes identified by source_sha256.",
   "api": {
-    "execution_started_utc": "2026-10-30T23:18:16.788Z",
-    "tests": 85,
-    "passed": 78,
+    "execution_started_utc": "2026-10-31T03:56:18.619Z",
+    "tests": 94,
+    "passed": 87,
     "skipped": 7,
     "failed": 0,
     "suites": [
-      {
-        "file": "apps/api/test/credentials.postgres.test.ts",
-        "status": "skipped",
-        "passed": 0,
-        "skipped": 7
-      },
-      {
-        "file": "apps/api/test/credentials.routes.test.ts",
-        "status": "passed",
-        "passed": 25,
-        "skipped": 0
-      },
-      {
-        "file": "apps/api/test/alerts.routes.test.ts",
-        "status": "passed",
-        "passed": 7,
-        "skipped": 0
-      },
-      {
-        "file": "apps/api/test/email.service.test.ts",
-        "status": "passed",
-        "passed": 11,
-        "skipped": 0
-      },
       {
         "file": "apps/api/src/config/__tests__/s3.test.ts",
         "status": "passed",
@@ -51,11 +27,47 @@
         "status": "passed",
         "passed": 18,
         "skipped": 0
+      },
+      {
+        "file": "apps/api/test/alerts.routes.test.ts",
+        "status": "passed",
+        "passed": 7,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/test/credentials.postgres.test.ts",
+        "status": "skipped",
+        "passed": 0,
+        "skipped": 7
+      },
+      {
+        "file": "apps/api/test/credentials.routes.test.ts",
+        "status": "passed",
+        "passed": 25,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/test/email.service.test.ts",
+        "status": "passed",
+        "passed": 11,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/test/http-hardening.test.ts",
+        "status": "passed",
+        "passed": 5,
+        "skipped": 0
+      },
+      {
+        "file": "apps/api/test/rate-limit.test.ts",
+        "status": "passed",
+        "passed": 4,
+        "skipped": 0
       }
     ]
   },
   "postgres": {
-    "execution_started_utc": "2026-10-30T23:19:47.413Z",
+    "execution_started_utc": "2026-10-31T03:59:45.618Z",
     "tests": 7,
     "passed": 7,
     "skipped": 0,
@@ -91,12 +103,13 @@
   "scope": "Synthetic fixtures only. HTTP unit tests double identity, DB transport, and S3; PostgreSQL tests use a disposable restricted-role DB with identity/S3 doubles. Android tests are JVM tests, not device or cloud E2E.",
   "source_hash_representation": "UTF-8 text with CRLF normalized to LF, matching canonical Git blobs; APK hash uses raw bytes.",
   "source_sha256": {
+    ".gitattributes": "b1f659a1dadcced8d6b5ba15cee71443fbd2cdfbe3304a79dd9ab83109ecd6ca",
     ".github/dependabot.yml": "25bae9544f3f3114133842bdfd44338317ad63ee3f4d6949f37eb0c4b734d42b",
-    ".github/workflows/validation.yml": "2548c59ea2c2ff5a2d82f0c7b4406ef87277b3d61fb46c21736103ccbf321755",
+    ".github/workflows/validation.yml": "40f436fea11e9f9b156de0c861c7a1fda44bd99cddb4e5b2620351a939ef0f59",
     "apps/api/jest.config.js": "809d01b22568963f6799938ac73a55ef7d54c6657187edc9821334fd8cdf53cb",
-    "apps/api/package.json": "db3af270494a4dc5952ba4b4a9d957a7219262b2c11c899873e0da877511f5d5",
+    "apps/api/package.json": "74c2b1b22d17370df0da9fb38423cb5db964c8dd7947d08e1cfd4a1ab6dab950",
     "apps/api/scripts/test-postgres.cjs": "8d20fb1cca026a31dbdc15124f0e740e42da9d70795020d70db220d63b5b6106",
-    "apps/api/scripts/write-control-evidence.cjs": "51bb88922e9d92fa0c4478f58971c8b0e2e6416bbbd8f7bcbf542d708b9ed6f7",
+    "apps/api/scripts/write-control-evidence.cjs": "7dae2ae3b63217fd0be1c3a58832a79c83297b32bc753e4a128123790ea2743c",
     "apps/api/src/config/__tests__/s3.test.ts": "bdb69ccab60594018f9cca52911e97865b90ab2c4e3e36d8eb547b56ef701ce8",
     "apps/api/src/config/init-audit-table.sql": "42024023e02f0a6a8a7f5487cbfa77e41e686acec57b92180d55fc8be4709843",
     "apps/api/src/config/init-credentials-table.sql": "4bacdbf56d8c4c7b90455dd03f5e7ad3339d98681c66129ea6ef661ecbdf2ba8",
@@ -106,7 +119,7 @@
     "apps/api/src/middleware/tenant.middleware.ts": "442d2e00dae6de196f53070ba0a983f22f49d9ae708a112374bc7184a8acac42",
     "apps/api/src/routes/alerts.routes.ts": "25df4621bedef432ec0aebd58382e030ee4e621616c6e34b620deafe58fc745d",
     "apps/api/src/routes/credentials.routes.ts": "1c786ec8d13954c15cf88c9e0d53d99ca608082111ed2276a08cfd4da336716f",
-    "apps/api/src/server.ts": "a34e3907a8ad16e563d08c710aba18c948c72b95a7a1cc75877cf373e70f18fe",
+    "apps/api/src/server.ts": "7bda4dcb75dc6bbdb23b02cea3fcfe960e235f0447485cbcd69b864d8ba090a5",
     "apps/api/src/services/email.service.ts": "7bbddb7a8606c24fbc4b1da6621d3093d3a2f093eddcd58ab7bef016979dcf86",
     "apps/api/src/services/scheduler.ts": "29ede45ac8fa73b052f7c9b622ff1578d224a24cbbdbc4db5f546f1f2609ee40",
     "apps/api/src/types/express.d.ts": "ca1e01f8c6303ca444726b5022a2de42ad3db310121fe480264919a127d06b73",
@@ -115,12 +128,14 @@
     "apps/api/test/credentials.postgres.test.ts": "486c09d34fdf321592d547f2acc445eed4197b08493cad5ea055d8ff7dd126cd",
     "apps/api/test/credentials.routes.test.ts": "fed1bc5ef72ca176f817228805a9366c3b73b6ad7c9b088a319020af3f644242",
     "apps/api/test/email.service.test.ts": "c345b059cbdf3afb9a7e791b24717c8e8ab4363c9b62a283adbec380598468aa",
+    "apps/api/test/http-hardening.test.ts": "5bec458e2bdb53141ee782d19e46e3ca9591e3dc4d346a0f310090d4f0078bda",
+    "apps/api/test/rate-limit.test.ts": "64bd0c86bfc33ea8e1facb199161f5d1a9afbef02a92b65368713edc1956b8d7",
     "apps/mobile-android/app/src/main/java/com/matmoud/app/data/api/Credential.kt": "38751c54852f7e714c9785a32406ef90292fc7501eb05ff58efe87bd9045a8d5",
     "apps/mobile-android/app/src/test/java/com/matmoud/app/auth/CredentialContractTest.kt": "507da177bacc831a5f7cc17969263f5e5855e48124507ac20110470fbcf5458b",
-    "apps/web/package.json": "d6ffda4c90ab8702aeba65e916730d47abc9c05039b05e3080b0d63664ebdfb1",
+    "apps/web/package.json": "3d9034d1681d1461e0f325f64623b798eb442ecfabfc7ccc561cba1aa9378c99",
     "apps/web/src/App.tsx": "024353018dc8ac060bfd25d69fec40bd4d9baef77cb5b403590aa8959b0c4220",
     "apps/web/src/components/types.ts": "5e009ae28e63f4ef7aa99c390af8e8d2e09f88e8224f0416333ed9bd851f1cea",
-    "package-lock.json": "925b8876826aa9d33f2bfeaf4d343c978af24f46285eb66366ee4f093c4d4f98",
-    "package.json": "8b86ab40fc5843ca18a51211a0057fcc2ac62ab6f63d9ab487048cfa29f91108"
+    "package-lock.json": "e62cc4d86bcac02ad9b53d60e2b3b3c76aeeb7af20ac0466013a43c6b94343e6",
+    "package.json": "af3d5b63aefd71d90c8980d9ea388fd39b5660d165ca324e9354d86e3de54ba3"
   }
 }

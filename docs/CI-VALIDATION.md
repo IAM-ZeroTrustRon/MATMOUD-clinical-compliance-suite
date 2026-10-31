@@ -28,20 +28,32 @@ requests. The builds exercise the installed toolchain directly. This workflow
 does not claim dependency vulnerability scanning. On October 30, the fresh local
 audit reported 22 advisories before remediation; `npm audit fix` without
 `--force`, an explicit patch-level Express pin, and a compatible root `qs`
-override reduced that to 10 low advisories. No forced upgrades or major version
-changes were applied. The remaining
-advisories are documented in [SECURITY_DEBT.md](SECURITY_DEBT.md), including
-the SendGrid compatibility constraint and the Jest development-tool chain.
+override reduced that to **4 low advisories in production**. The full tree,
+including development tooling, reports **26** (19 moderate and 7 low); the
+moderate findings are confined to the Jest 29 / `ts-node-dev` toolchain and are
+never installed into a deployed process. No forced upgrades or major version
+changes were applied. Both figures are documented in
+[SECURITY_DEBT.md](SECURITY_DEBT.md), including the SendGrid compatibility
+constraint and the Jest development-tool chain.
 
 ### Dependency remediation status, October 30, 2026
 
 `npm audit` against the root workspace lockfile reported 22 advisories before
-this change (10 low, two moderate, eight high, two critical) and 10 after it
-(10 low; zero moderate, high, or critical). Four of the remaining advisories sit
-in runtime dependencies (`@sendgrid/mail`, `@sendgrid/client`,
-`@sendgrid/helpers`, `deepmerge`); six are in the Jest/ts-jest development
-toolchain. Every automated remedy for those ten requires a major downgrade, so
-they are deferred with a documented rationale rather than force-fixed.
+this change (10 low, two moderate, eight high, two critical). The position after
+the compatible upgrades, measured on a complete 605-package install:
+
+| Scope | Critical | High | Moderate | Low | Total |
+| --- | --- | --- | --- | --- | --- |
+| Production (`--omit=dev`) | 0 | 0 | 0 | 4 | 4 |
+| Full tree including dev | 0 | 0 | 19 | 7 | 26 |
+
+The four production findings are the SendGrid chain (`@sendgrid/mail`,
+`@sendgrid/client`, `@sendgrid/helpers`, `deepmerge`). The 19 moderate findings
+are development-only, reached through Jest 29 and `ts-node-dev`. Every automated
+remedy requires a major downgrade, so they are deferred with a documented
+rationale rather than force-fixed. An earlier revision of this section quoted
+"10 remaining, all low" — that was measured before the install completed and
+understated the development-toolchain position.
 
 **Execution at this revision — October 30, 2026, evening.** The dependency
 refresh was validated on the review workstation once the environment was
@@ -57,18 +69,24 @@ Recorded results at this revision:
 
 | Suite | Result | Executed |
 | --- | --- | --- |
-| API Jest | 78 passed, 7 opt-in cases skipped, 0 failed | fresh — `2026-10-30T23:18:16Z` |
-| PostgreSQL isolation | 7 passed; disposable fixture created and dropped | fresh — `2026-10-30T23:19:47Z` |
+| API Jest | 87 passed of 94, 7 opt-in cases skipped, 0 failed | fresh — `2026-10-31T03:56:18Z`, Node 24.18.0 |
+| PostgreSQL isolation | 7 passed; disposable fixture created and dropped | fresh — `2026-10-31T03:59:45Z`, Node 24.18.0 |
 | Android JVM + debug APK | `BUILD SUCCESSFUL`; 14 cases per variant | **cached** — 00:58 outputs, tasks reported `UP-TO-DATE` |
 
-`npm audit` against the installed tree confirms the remediation figure: 22
-advisories before, 10 after, all low, with none in the moderate, high, or
-critical bands. The Android figures are a cached-result attestation rather than
+Both Node suites were re-executed after the runtime pin (`fa9b83b`) rather than
+carried over from the earlier run, so the timestamps above belong to runs made at
+this revision under Node 24.18.0. The hosted jobs run the same runtime, but CI
+results are recorded in GitHub Actions; they are not inputs to the evidence
+manifest.
+
+`npm audit` against the installed tree gives the figures in the table above: 4
+low in production, 26 across the full tree, and no critical or high findings in
+either scope. The Android figures are a cached-result attestation rather than
 a fresh JVM execution, because no Android source or Gradle input changed in this
 dependency-only change set; the hosted Android job re-executes the same tasks
 from a clean checkout. The evidence summary was regenerated from these inputs
-and now matches **31 of 31** `source_sha256` entries, including the new
-`.github/dependabot.yml`.
+and now matches **34 of 34** `source_sha256` entries, including `.gitattributes`,
+`.github/dependabot.yml`, and the two new regression suites.
 
 ## Lint and release gates
 

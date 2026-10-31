@@ -1,4 +1,7 @@
 import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
 import 'dotenv/config';
 import credentialsRouter from './routes/credentials.routes';
 import alertsRouter from './routes/alerts.routes';
@@ -30,6 +33,73 @@ process.on('uncaughtException', () => {
 });
 
 const app = express();
+
+// ---------------------------------------------------------------------------
+// Edge hardening
+//
+// The API is reachable from the public internet before any route-level auth
+// runs, so these controls are registered first and apply to health probes,
+// unmatched routes, and error responses as well as to authenticated traffic.
+// ---------------------------------------------------------------------------
+
+app.disable('x-powered-by');
+
+// Behind a managed load balancer or reverse proxy the socket address is the
+// proxy, not the caller. Without this every client shares one rate-limit
+// bucket and one logged source address. Default 0 = direct connections only;
+// set TRUST_PROXY_HOPS=1 for a single managed proxy.
+const trustProxyHops = Number(process.env.TRUST_PROXY_HOPS ?? 0);
+if (Number.isInteger(trustProxyHops) && trustProxyHops > 0) {
+  app.set('trust proxy', trustProxyHops);
+}
+
+app.use(
+  helmet({
+    // The API serves JSON only; the web client's static host owns CSP.
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'same-site' },
+  })
+);
+
+// ---------------------------------------------------------------------------
+// CORS — explicit allowlist, deny by default
+//
+// Bearer-token auth means no cookies are sent cross-origin, so credentials are
+// not enabled and the allowlist never needs to be a wildcard. In production an
+// unset CORS_ORIGINS refuses every cross-origin browser request rather than
+// falling back to localhost convenience.
+// ---------------------------------------------------------------------------
+
+const configuredOrigins = (process.env.CORS_ORIGINS ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins =
+  configuredOrigins.length > 0
+    ? configuredOrigins
+    : process.env.NODE_ENV === 'production'
+      ? []
+      : ['http://localhost:5173', 'http://localhost:4173'];
+
+if (process.env.NODE_ENV === 'production' && configuredOrigins.length === 0) {
+  console.warn(
+    '[API] CORS_ORIGINS is unset — all cross-origin browser requests will be refused'
+  );
+}
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Absent Origin: same-origin navigation, curl, and native mobile clients.
+      if (!origin) return callback(null, true);
+      callback(null, allowedOrigins.includes(origin));
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+    maxAge: 600,
+  })
+);
 
 // ---------------------------------------------------------------------------
 // Global middleware
@@ -80,9 +150,36 @@ app.get('/health', async (_req, res) => {
 //   - The chain order is preserved regardless of Express middleware registration order
 // ---------------------------------------------------------------------------
 
-app.use('/credentials', credentialsRouter);
-app.use('/alerts', alertsRouter);
-app.use('/audit-logs', auditRouter);
+// ---------------------------------------------------------------------------
+// Rate limiting — per client IP, feature routes only
+//
+// /health sits outside the limiter so liveness probes cannot be starved by
+// application traffic. RATE_LIMIT_MAX is configurable for load tests and for
+// clinics whose staff share a single NAT address; the default is sized for a
+// small pilot tenant, not a whole health system.
+// ---------------------------------------------------------------------------
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: Number(process.env.RATE_LIMIT_MAX ?? 600),
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'rate_limited' },
+});
+
+// Routes with an outbound effect (alert dispatch reaches SendGrid) or that
+// carry the credential token get a tighter bucket than ordinary reads.
+const sensitiveLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: Number(process.env.RATE_LIMIT_SENSITIVE_MAX ?? 60),
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'rate_limited' },
+});
+
+app.use('/credentials', apiLimiter, credentialsRouter);
+app.use('/alerts', sensitiveLimiter, alertsRouter);
+app.use('/audit-logs', apiLimiter, auditRouter);
 
 // ---------------------------------------------------------------------------
 // Global error handler — must be registered last

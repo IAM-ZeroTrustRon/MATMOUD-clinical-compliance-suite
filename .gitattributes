@@ -1,0 +1,15 @@
+* text=auto eol=lf
+
+# Binary assets must never be normalised
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.docx binary
+*.mp4 binary
+*.jar binary
+*.keystore binary
+*.jks binary

@@ -12,6 +12,8 @@ const allowed = new Set([
   'apps/api/test/credentials.postgres.test.ts',
   'apps/api/test/email.service.test.ts',
   'apps/api/test/alerts.routes.test.ts',
+  'apps/api/test/http-hardening.test.ts',
+  'apps/api/test/rate-limit.test.ts',
 ]);
 const digest = (file) => crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex');
 // Allowlisted source inputs are UTF-8 text. Hash their canonical LF bytes,
@@ -30,7 +32,10 @@ function result(file) {
       return { file: relative, status: suite.status,
         passed: suite.assertionResults.filter((test) => test.status === 'passed').length,
         skipped: suite.assertionResults.filter((test) => test.status === 'pending').length };
-    }),
+    // Jest reports suites in completion order, which varies between runs. Sort
+    // by path so a regeneration diff shows result changes only, never suites
+    // that appear to have vanished or gained tests by moving.
+    }).sort((a, b) => a.file.localeCompare(b.file)),
   };
 }
 const api = result('hardening-results.json');
@@ -49,6 +54,7 @@ const android = ['testDebugUnitTest', 'testReleaseUnitTest'].map((variant) => {
   return { variant, ...totals };
 });
 const sourceFiles = [...allowed,
+  '.gitattributes',
   '.github/workflows/validation.yml', '.github/dependabot.yml',
   'package.json', 'package-lock.json',
   'apps/api/package.json', 'apps/web/package.json',

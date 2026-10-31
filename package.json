@@ -9,7 +9,10 @@
     "dev:web": "npm run dev --workspace=apps/web",
     "build": "npm run build --workspace=apps/api && npm run build --workspace=apps/web",
     "migrate": "npm run migrate --workspace=apps/api",
-    "install:all": "cd apps/api && npm install && cd ../../apps/web && npm install"
+    "install:all": "npm install"
+  },
+  "engines": {
+    "node": ">=24 <25"
   },
   "workspaces": [
     "apps/api",
