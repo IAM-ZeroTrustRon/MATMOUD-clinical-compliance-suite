@@ -12,6 +12,8 @@ const allowed = new Set([
   'apps/api/test/credentials.postgres.test.ts',
   'apps/api/test/email.service.test.ts',
   'apps/api/test/alerts.routes.test.ts',
+  'apps/api/test/http-hardening.test.ts',
+  'apps/api/test/rate-limit.test.ts',
 ]);
 const digest = (file) => crypto.createHash('sha256').update(fs.readFileSync(path.join(root, file))).digest('hex');
 // Allowlisted source inputs are UTF-8 text. Hash their canonical LF bytes,
@@ -49,6 +51,7 @@ const android = ['testDebugUnitTest', 'testReleaseUnitTest'].map((variant) => {
   return { variant, ...totals };
 });
 const sourceFiles = [...allowed,
+  '.gitattributes',
   '.github/workflows/validation.yml', '.github/dependabot.yml',
   'package.json', 'package-lock.json',
   'apps/api/package.json', 'apps/web/package.json',
