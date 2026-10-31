@@ -15,6 +15,16 @@
 
 process.env.RATE_LIMIT_MAX = '500';
 
+// Stub identity so this suite does not depend on Auth0 configuration. The real
+// auth middleware throws at import time when its env vars are absent, which is
+// exactly the state of a clean CI checkout; edge hardening is tested here, not
+// token verification.
+jest.mock('../src/middleware/auth.middleware', () => ({
+  authMiddleware: (_req: unknown, res: { status: (code: number) => { json: (body: unknown) => void } }) => {
+    res.status(401).json({ error: 'unauthorized' });
+  },
+}));
+
 jest.mock('../src/config/db', () => ({
   __esModule: true,
   default: {
