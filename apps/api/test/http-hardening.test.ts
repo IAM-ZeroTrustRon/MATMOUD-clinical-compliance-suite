@@ -14,6 +14,9 @@
  */
 
 process.env.RATE_LIMIT_MAX = '500';
+process.env.AUTH0_DOMAIN = 'test.auth0.invalid';
+process.env.AUTH0_AUDIENCE = 'https://api.test.invalid';
+process.env.AUTH0_NAMESPACE = 'https://app.test.invalid';
 
 // Stub identity so this suite does not depend on Auth0 configuration. The real
 // auth middleware throws at import time when its env vars are absent, which is
