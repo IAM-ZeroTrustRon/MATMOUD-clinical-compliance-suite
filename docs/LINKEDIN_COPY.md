@@ -23,22 +23,22 @@ Leave blank, or associate with your Per Scholas cohort if you want it tied to th
 
 **Project URL**
 ```
-https://github.com/IAM-ZeroTrustRon/MOUD-Compliance-Security-Audit
+https://github.com/IAM-ZeroTrustRon/MOUD-compliance-SecAudit
 ```
 
-**Description** *(LinkedIn allows 2,000 characters — this is ~1,350)*
+**Description** *(LinkedIn allows 2,000 characters. The text below is 2,325 and needs trimming before pasting; the previous version was 2,038 — also over the limit.)*
 ```
-Self-conducted static security code review of a HIPAA and 42 CFR Part 2 healthcare application I designed and built — a multi-tenant platform tracking clinician credentials for opioid use disorder treatment clinics.
+Owner-conducted self-audit of a synthetic-data prototype — a HIPAA and 42 CFR Part 2 healthcare application I designed and built: a multi-tenant platform tracking clinician credentials for opioid use disorder treatment clinics. No real patient data was involved.
 
 Manual white-box review across five phases: attack-surface scoping, claim-to-code tracing (verifying every documented security property against the code implementing it), control-by-control review, supply chain and repository hygiene, and re-verification against live source.
 
 18 findings identified. Severity assigned by impact on the confidentiality, integrity, and auditability of protected health information — not by difficulty to fix — and each finding mapped to the specific HIPAA Security Rule or 42 CFR Part 2 provision it implicates, so the output is actionable by a compliance reviewer rather than only an engineer.
 
-Every critical and high-severity finding is now closed and regression-tested. The most severe: multi-factor authentication was structurally correct, ran on every protected route, and was documented as enforced — but the allow-list of accepted authentication methods included the identity provider's value for an ordinary password-only login. Every session passed the check. The control was inert.
+13 of 18 findings are now closed — 9 with regression tests, 3 by structural check, and 1 by inspection with its regression test still pending — with 1 partial and 4 open, each documented as such. The most severe: multi-factor authentication was structurally correct, ran on every protected route, and was documented as enforced — but the allow-list of accepted authentication methods included the identity provider's value for an ordinary password-only login. Every session passed the check. The control was inert.
 
-Remediation followed a defined discipline: defense in depth over single fixes, fail-closed defaults, documenting deliberate exclusions so mistakes cannot be reintroduced, and preferring no dependency to a small one in a system holding patient data. 35 regression tests were added — and each suite was verified to FAIL against the original defective code before being accepted, because a test that has never been shown to fail is not yet evidence of anything.
+Remediation followed a defined discipline: defense in depth over single fixes, fail-closed defaults, documenting deliberate exclusions so mistakes cannot be reintroduced, and preferring no dependency to a small one in a system holding patient data. Regression tests now cover nine of the closed findings, and for three of them a reversion result is reported — the original defective code was restored and the tests failed. That reversion is reported, not re-executed here, because a test that has never been shown to fail is not yet evidence of anything.
 
-Eleven findings remain open, documented as open and severity-ranked.
+Four findings remain open and one is partial, each documented as open and severity-ranked.
 
 Skills: threat-informed code review · IAM and authentication analysis · multi-tenant isolation · PHI data-flow tracing · audit-coverage assessment · risk-based severity ranking · HIPAA / 42 CFR Part 2 control mapping · security regression testing.
 ```
@@ -62,7 +62,7 @@ Every authenticated session passed the MFA check. The control was doing nothing.
 
 I only found it because I stopped trusting that I'd been careful and audited my own codebase the way I'd audit a system I'd never seen — tracing every security claim the application makes back to the code that implements it, and checking whether the implementation was actually correct rather than merely present.
 
-18 findings. Every critical and high-severity one is now closed.
+18 findings: 13 closed, 1 partial, 4 open. Owner-conducted self-audit; synthetic data only.
 
 Three things I took from it:
 
@@ -72,16 +72,16 @@ Three things I took from it:
 
 → This defect was invisible to code review and to dependency scanning — and visible immediately to a single test. That's an argument for tests as a security control, not just a quality one.
 
-So I wrote 35 of them. And before accepting any suite, I restored the original broken code and confirmed the tests failed. A test that's never been shown to fail isn't evidence of anything yet.
+So I wrote tests for the fixes. For three of them I restored the original broken code and confirmed the tests failed — a reversion result I'm reporting, not one I re-ran for you. A test that's never been shown to fail isn't evidence of anything yet.
 
 Five years as a Certified Recovery Specialist taught me what these clinics actually need. The audit taught me something harder: that building a control and verifying it works are completely different activities.
 
-Full methodology and write-up: github.com/IAM-ZeroTrustRon/MOUD-Compliance-Security-Audit
+Full methodology and write-up: github.com/IAM-ZeroTrustRon/MOUD-compliance-SecAudit
 
 #GRC #HealthcareIT #ApplicationSecurity #HIPAA #CyberSecurity
 ```
 
-**Word count:** ~360. Long for LinkedIn but this format (confession → lesson → evidence) performs well and the first three lines carry the hook above the "see more" fold.
+**Word count:** ~335. Long for LinkedIn but this format (confession → lesson → evidence) performs well and the first three lines carry the hook above the "see more" fold.
 
 ### Shorter variant, if you prefer
 
@@ -96,9 +96,9 @@ But the allow-list of accepted login methods included the identity provider's va
 
 A security control can be structurally correct and semantically wrong. Reviewing the shape of a check is not reviewing the check.
 
-I audited the whole codebase the way I'd audit a system I'd never seen. 18 findings. Every critical and high-severity one is now closed, each with a regression test I first proved would FAIL against the original code.
+I audited the whole codebase the way I'd audit a system I'd never seen. 18 findings: 13 closed, 1 partial, 4 open. For three of the closures I have a recorded result that the test failed against the original code.
 
-Full methodology: github.com/IAM-ZeroTrustRon/MOUD-Compliance-Security-Audit
+Full methodology: github.com/IAM-ZeroTrustRon/MOUD-compliance-SecAudit
 
 #GRC #HealthcareIT #HIPAA #ApplicationSecurity
 ```
