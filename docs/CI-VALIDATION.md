@@ -122,7 +122,7 @@ the workflow; optional ShellCheck analysis was disabled because ShellCheck is
 not installed locally. The actionlint release archive's SHA-256 matched its
 published checksum before execution.
 
-The API rerun passed 78 tests (seven opt-in cases skipped). The separate
+The API rerun at the time passed 78 tests (seven opt-in cases skipped); the latest recorded run is revision `3c36593` (2026-10-31 UTC) with **87 passed, 7 skipped, 94 total**. The separate
 PostgreSQL run passed all seven cases and completed fixture cleanup. The
 [sanitized evidence summary](evidence/CONTROL-TEST-RESULTS.json) records those
 execution times and source hashes, including the workflow and npm manifests.

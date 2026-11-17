@@ -11,7 +11,7 @@ The audit and case study now live in independent sibling repositories. See
 [the verified workspace layout](WORKSPACE-LAYOUT.md) before using older paths.
 The original directory is retained for recovery only.
 
-The latest API rerun passed 78 tests plus seven separately executed PostgreSQL
+The latest recorded API run (revision `3c36593`, 2026-10-31 UTC) passed 87 tests with 7 skipped of 94 total, plus seven separately executed PostgreSQL
 tests; TypeScript compiled. Alert outcomes now distinguish `emailed`/`audited`
 and expose tracking failures. Read the updated hardening report for semantics
 and remaining atomicity risks. Earlier counts and paths below are historical.
